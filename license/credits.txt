@@ -1,0 +1,2 @@
+- LSP file format, converter and Amiga fast replayer written by Arnaud Carré (aka Leonard/Oxygene)
+- LSPConvert uses "micromod" library by Martin Cameron to parse and analyse .mod file
