@@ -49,5 +49,5 @@ You can test the Amiga bootable image floppy disk "benchmark.adf" to see how dif
 
 ## Credits
 
-* LSP converter, format & player by Arnaud Carré (aka Leonard/Oxygene : @leonard_coder )
+* LSP converter, format & player by Arnaud Carré (aka Leonard/Oxygene : [@leonard_coder](https://twitter.com/leonard_coder) )
 * LSPConvert uses "micromod" library by Martin Cameron to load & analyze the .mod file
