@@ -7,9 +7,9 @@ LSP (Light Speed Player) is a very fast Amiga music player. It can play any MOD 
 LSP comes with two different players: standard and insane. Standard is really fast, and insane is ultra fast!
 Here is a speed comparaison of different Amiga music players. Numbers are given in "scanlines", measured on basic Amiga 500 OCS (PAL). Smaller is better
 
-![image info](./png/bench_average.png)
-
 ![image info](./png/bench_peak.png)
+
+![image info](./png/bench_average.png)
 
 ## LSPConvert.exe
 
