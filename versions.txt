@@ -1,2 +1,17 @@
-v1.0
+LSP - Light Speed Player
+Fastest Amiga MOD player ever
+Written by Leonard/Oxygene ( twitter @leonard_coder )
+
+---------------
+Version History
+---------------
+
+v1.01
+	- fixed mod ending detection issue
+	- fixed very short samples issue
+	- fixed one frame delay when music loop in "insane" mode
+	- fixed bad player init if called two times in normal player
+	- added "-renderwav" option to debug any .mod parsing error
+
+v1.00
 	- first release

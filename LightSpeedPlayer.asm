@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.0
+;	Light Speed Player v1.01
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -24,6 +24,8 @@
 ;		Out:None
 ;
 ;*****************************************************************
+
+	opt o-		; switch off ALL optimizations (we don't want vasm to change some code size, and all optimizations are done!)
 
 LSP_MusicDriver:
 			bra.w	.LSP_PlayerInit
@@ -182,12 +184,11 @@ sizeof_LSPVars:		rs.w	0
 			move.w	(a0)+,d0				; skip major & minor version of LSP
 			move.w	(a0)+,m_currentBpm(a3)	; default BPM
 			move.l	a2,m_dmaconPatch(a3)
-			move.w	(a0)+,d0		; instrument count
-			move.l	a0,a2
-			lea		-12(a2),a2			; LSP data has -12 offset on instrument tab ( to win 2 cycles in fast player :) )
-			move.l	a2,m_lspInstruments(a3)		; instrument tab addr ( minus 4 )
+			move.w	(a0)+,d0				; instrument count
+			lea		-12(a0),a2				; LSP data has -12 offset on instrument tab ( to win 2 cycles in fast player :) )
+			move.l	a2,m_lspInstruments(a3)	; instrument tab addr ( minus 4 )
 			tst.b	m_relocDone(a3)
-			bne.s	.relocDone
+			bne.s	.skip
 			st		m_relocDone(a3)
 			subq.w	#1,d0
 			move.l	a1,d1
@@ -195,7 +196,9 @@ sizeof_LSPVars:		rs.w	0
 			add.l	d1,6(a0)
 			lea		12(a0),a0
 			dbf		d0,.relocLoop
-
+			bra.s	.relocDone
+.skip:		mulu.w	#12,d0
+			add.l	d0,a0
 .relocDone:	move.w	(a0)+,d0				; codes count (+2)
 			move.l	a0,m_codeTableAddr(a3)	; code table
 			add.w	d0,d0
