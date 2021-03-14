@@ -26,7 +26,7 @@ This command will produce three files:
 LSPConvert options:
         -noinsane : do not generate insanely fast player source code
         -nosampleoptim : keep .MOD soundbank layout ( for AmigaKlang )
-		-renderwav : render the .MOD as a wav file to debug any .mod parsing error
+	-renderwav : render the .MOD as a wav file to debug any .mod parsing error
         -v : verbose
 ```
 
@@ -45,6 +45,7 @@ LSP have a special "insane" mode with an ultra fast replayer. The insane player 
 ## Amiga 500 benchmark
 
 You can test the Amiga bootable image floppy disk "benchmark.adf" to see how different amiga players run on your real hardware.
+
 ![image info](./png/benchmark_shot.png)
 
 
