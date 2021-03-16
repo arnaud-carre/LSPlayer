@@ -1,4 +1,4 @@
-# Light Speed Player v1.01
+# Light Speed Player v1.02
 # The fastest Amiga music player ever
 
 ## What is LSP?
@@ -24,10 +24,12 @@ This command will produce three files:
 
 ```c
 LSPConvert options:
-        -noinsane : do not generate insanely fast player source code
-        -nosampleoptim : keep .MOD soundbank layout ( for AmigaKlang )
-	-renderwav : render the .MOD as a wav file to debug any .mod parsing error
-        -v : verbose
+	-v : verbose
+	-noinsane : do not generate insanely fast player
+	-nosampleoptim : preserve orginal .MOD soundbank layout
+	-renderwav : generate a .wav from .mod (output PC mod parser)
+	-amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)
+	-nosettempo : remove $Fxx>$20 SetTempo support (for old .mods compatiblity)
 ```
 
 ## LSP Standard : LightSpeedPlayer.asm
