@@ -5,6 +5,9 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.03
+	- fix a rare replen bug when $F01 speed is used
+
 v1.02
 	- fixed bug in $9xx fx (sample offset)
 	- added "-amigapreview" : generate a wav from LSP data (output simulated LSP Amiga player)

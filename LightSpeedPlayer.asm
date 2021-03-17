@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.01
+;	Light Speed Player v1.03
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -20,7 +20,7 @@
 ;
 ;	bsr LSP_MusicDriver+4 : LSP player tick (call once per frame)
 ;		In:	a6: should be $dff0a0
-;			Used regs: d0/d1/a0/a1/a2/a3
+;			Used regs: d0/d1/a0/a1/a2/a3/a4
 ;		Out:None
 ;
 ;*****************************************************************
@@ -45,33 +45,33 @@ LSP_MusicDriver:
 			move.l	m_codeTableAddr(a1),a2	; code table
 			move.w	0(a2,d0.w),d0			; code
 			beq		.noInst
+			bpl.s	.optim
 			cmpi.w	#$ffff,d0
 			beq		.r_rewind
 			cmpi.w	#$f00f,d0
 			beq		.r_chgbpm
-			
+.optim:
 			moveq	#15,d1
 			and.w	d0,d1
 
-			lea		.resetv(pc),a2
 			add.w	d0,d0
 			bcc.s	.noRd
-			move.l	(a2)+,a3
+			move.l	.resetv(pc),a3
 			move.l	(a3)+,$d0-$a0(a6)
 			move.w	(a3)+,$d4-$a0(a6)
 .noRd:		add.w	d0,d0
 			bcc.s	.noRc
-			move.l	(a2)+,a3
+			move.l	.resetv+4(pc),a3
 			move.l	(a3)+,$c0-$a0(a6)
 			move.w	(a3)+,$c4-$a0(a6)
 .noRc:		add.w	d0,d0
 			bcc.s	.noRb
-			move.l	(a2)+,a3
+			move.l	.resetv+8(pc),a3
 			move.l	(a3)+,$b0-$a0(a6)
 			move.w	(a3)+,$b4-$a0(a6)
 .noRb:		add.w	d0,d0
 			bcc.s	.noRa
-			move.l	(a2)+,a3
+			move.l	.resetv+12(pc),a3
 			move.l	(a3)+,(a6)
 			move.w	(a3)+,$a4-$a0(a6)
 .noRa:		
@@ -119,32 +119,31 @@ LSP_MusicDriver:
 			add.w	(a0)+,a2
 			move.l	(a2)+,$d0-$a0(a6)
 			move.w	(a2)+,$d4-$a0(a6)
-			move.l	a2,(a3)+
+			move.l	a2,(a3)
 .noId:		add.w	d0,d0
 			bcc.s	.noIc
 			add.w	(a0)+,a2
 			move.l	(a2)+,$c0-$a0(a6)
 			move.w	(a2)+,$c4-$a0(a6)
-			move.l	a2,(a3)+
+			move.l	a2,4(a3)
 .noIc:		add.w	d0,d0
 			bcc.s	.noIb
 			add.w	(a0)+,a2
 			move.l	(a2)+,$b0-$a0(a6)
 			move.w	(a2)+,$b4-$a0(a6)
-			move.l	a2,(a3)+
+			move.l	a2,8(a3)
 .noIb:		add.w	d0,d0
 			bcc.s	.noIa
 			add.w	(a0)+,a2
 			move.l	(a2)+,(a6)
 			move.w	(a2)+,$a4-$a0(a6)
-			move.l	a2,(a3)+
+			move.l	a2,12(a3)
 .noIa:		
 
 .noInst:	move.l	a0,(a1)			; store word stream (or byte stream if coming from early out)
 			rts
 
 .r_rewind:	move.l	m_byteStreamLoop(a1),a0
-			move.l	a0,m_byteStream(a1)
 			move.l	m_wordStreamLoop(a1),m_wordStream(a1)
 			bra		.process
 

@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.02
+;	Light Speed Player v1.03
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -22,7 +22,7 @@
 ;
 ;	bsr LSP_MusicDriver+4 : LSP player tick (call once per frame)
 ;		a6: should be $dff0a0 (and not $dff000)
-;		Used regs: d0/a0/a1/a2/a3
+;		Used regs: d0/a0/a1/a2/a3/a4
 ;
 ;*****************************************************************
 
@@ -39,6 +39,10 @@ LSP_MusicDriver:
 			add.w	d0,d0
 			move.w	.LSP_JmpTable(pc,d0.w),d0	; 14 cycles
 			jmp		.LSP_JmpTable(pc,d0.w)		; 14 cycles
+
+.r_rewind:	move.l	0-8(a1),16-8(a1)
+			move.l	24-8(a1),a0
+			bra.s	.process
 
 
 .LSP_JmpTable:		; (239 codes)
@@ -283,10 +287,6 @@ LSP_MusicDriver:
 			dc.w	.r_ArCvp-.LSP_JmpTable
 			dc.w	.r_rewind-.LSP_JmpTable
 
-.r_rewind:	move.l	0-8(a1),16-8(a1)
-			move.l	24-8(a1),a0
-			bra.s	.process
-
 .LSPVars:	dc.l	0			; 0  word stream loop
 			dc.w	0			; 4  reloc has been done
 			dc.w	0			; 6  current music BPM
@@ -333,7 +333,7 @@ LSP_MusicDriver:
 ; a1: sound bank data (chip mem)
 ; a2: 8bit DMACON byte address
 .LSP_PlayerInit:
-			move.l	#$93b876bd,d0
+			move.l	#$aed85f0d,d0
 			cmp.l	(a1),d0
 			bne.s	.dataError
 			cmpi.l	#'LSP1',(a0)+
@@ -383,21 +383,21 @@ LSP_MusicDriver:
 
 .r_ArCr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_Cr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		rts
 
 .r_Dp:
@@ -410,16 +410,16 @@ LSP_MusicDriver:
 
 .r_ArBrCr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_Cvi:
@@ -430,7 +430,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -459,7 +459,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -477,7 +477,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -486,19 +486,19 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_BrCr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_AviCi:
@@ -509,7 +509,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -518,7 +518,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -531,7 +531,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -540,7 +540,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -555,15 +555,15 @@ LSP_MusicDriver:
 .r_ArCrDr:
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_Bp:
@@ -582,22 +582,22 @@ LSP_MusicDriver:
 
 .r_ArBrCrDrp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -614,13 +614,13 @@ LSP_MusicDriver:
 .r_ArBvCr:
 		move.b	(a0)+,$19(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_AvpiCvi:
@@ -633,7 +633,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -642,33 +642,33 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_Ar:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+12(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_ArCrDrp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -682,7 +682,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -702,29 +702,29 @@ LSP_MusicDriver:
 .r_ArBrCrDr:
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_CrDp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -737,7 +737,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -757,7 +757,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -789,7 +789,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -811,7 +811,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+12(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
@@ -822,13 +822,13 @@ LSP_MusicDriver:
 
 .r_ApCr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -840,7 +840,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+12(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
@@ -851,54 +851,54 @@ LSP_MusicDriver:
 
 .r_ArCrDp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
 .r_ArBrCrDp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
 .r_ArBr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+8(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_Br:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		lea		.resetv+8(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_BvpiCi:
@@ -910,7 +910,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -935,7 +935,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -954,19 +954,19 @@ LSP_MusicDriver:
 
 .r_BrCrDrp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -981,7 +981,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1015,7 +1015,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1024,23 +1024,23 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_ArBrCrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_AviBvpiCvi:
@@ -1054,7 +1054,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1074,10 +1074,10 @@ LSP_MusicDriver:
 .r_AvCr:
 		move.b	(a0)+,$09(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		rts
 
 .r_BiCi:
@@ -1087,7 +1087,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1104,15 +1104,15 @@ LSP_MusicDriver:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_Bvpi:
@@ -1124,7 +1124,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -1136,24 +1136,24 @@ LSP_MusicDriver:
 .r_ArCrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_CrDr:
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		rts
 
 .r_AviBvCvi:
@@ -1166,7 +1166,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1175,7 +1175,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1235,7 +1235,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1249,7 +1249,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1258,7 +1258,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1273,7 +1273,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -1289,9 +1289,9 @@ LSP_MusicDriver:
 .r_Dr:
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
 		rts
 
 .r_BvDv:
@@ -1308,7 +1308,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1317,7 +1317,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1332,7 +1332,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1353,12 +1353,12 @@ LSP_MusicDriver:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		rts
 
 .r_Dvi:
@@ -1381,15 +1381,15 @@ LSP_MusicDriver:
 .r_BrCrDr:
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_ApiCviDvi:
@@ -1415,7 +1415,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1428,7 +1428,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1466,16 +1466,16 @@ LSP_MusicDriver:
 
 .r_CrDrp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -1503,7 +1503,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1531,20 +1531,20 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_ApCrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -1572,7 +1572,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1626,7 +1626,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1638,7 +1638,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1663,10 +1663,10 @@ LSP_MusicDriver:
 .r_BvCr:
 		move.b	(a0)+,$19(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		rts
 
 .r_AviCviDvi:
@@ -1692,22 +1692,22 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_BrCrDp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -1715,15 +1715,15 @@ LSP_MusicDriver:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_CiDvi:
@@ -1768,7 +1768,7 @@ LSP_MusicDriver:
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1795,7 +1795,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1804,7 +1804,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1816,7 +1816,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1842,7 +1842,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1869,7 +1869,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1878,7 +1878,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -1917,13 +1917,13 @@ LSP_MusicDriver:
 .r_BrCrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_BpiCi:
@@ -1934,7 +1934,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1950,16 +1950,16 @@ LSP_MusicDriver:
 .r_ApBrCrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -1972,7 +1972,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -1985,12 +1985,12 @@ LSP_MusicDriver:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_ApiBvpiCviDi:
@@ -2055,7 +2055,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -2106,7 +2106,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2165,7 +2165,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2178,18 +2178,18 @@ LSP_MusicDriver:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_AvpiBiCvi:
@@ -2202,7 +2202,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2268,7 +2268,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2328,7 +2328,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2355,7 +2355,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -2400,7 +2400,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2484,7 +2484,7 @@ LSP_MusicDriver:
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2510,7 +2510,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2528,7 +2528,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2568,7 +2568,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -2581,7 +2581,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2644,7 +2644,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
 		move.w	(a2)+,$14(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -2679,7 +2679,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2721,22 +2721,22 @@ LSP_MusicDriver:
 
 .r_ArBrpCrDr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -2792,7 +2792,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -2913,7 +2913,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2922,7 +2922,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -2935,7 +2935,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -2956,13 +2956,13 @@ LSP_MusicDriver:
 		move.b	(a0)+,$29(a6)
 		move.b	(a0)+,$19(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -3006,7 +3006,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3015,22 +3015,22 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_ArBpCr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -3072,7 +3072,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -3088,10 +3088,10 @@ LSP_MusicDriver:
 .r_CrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
 		rts
 
 .r_BvpiDvpi:
@@ -3114,7 +3114,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
 		move.w	(a2)+,$14(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -3147,10 +3147,10 @@ LSP_MusicDriver:
 .r_BrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		lea		.resetv+8(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_ApiCiDvi:
@@ -3175,7 +3175,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -3215,10 +3215,10 @@ LSP_MusicDriver:
 .r_AvBr:
 		move.b	(a0)+,$09(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		lea		.resetv+8(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_ApiBviCviDpi:
@@ -3265,7 +3265,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3298,7 +3298,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -3310,10 +3310,10 @@ LSP_MusicDriver:
 .r_ArBv:
 		move.b	(a0)+,$19(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+12(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_AviBvpiCviDvpi:
@@ -3389,7 +3389,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3415,7 +3415,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3451,22 +3451,22 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,8(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_ArBpDr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	8(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -3481,7 +3481,7 @@ LSP_MusicDriver:
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3502,9 +3502,9 @@ LSP_MusicDriver:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
 		rts
 
 .r_ApiBvCviDvi:
@@ -3531,33 +3531,33 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_BrpCrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		move.l	a0,(a1)
 		rts
 
 .r_ArDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		lea		.resetv+12(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_AviBpiCvi:
@@ -3570,7 +3570,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3598,7 +3598,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3647,16 +3647,16 @@ LSP_MusicDriver:
 
 .r_BrpCr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -3700,7 +3700,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3719,7 +3719,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3737,7 +3737,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -3778,13 +3778,13 @@ LSP_MusicDriver:
 .r_ArBvCp:
 		move.b	(a0)+,$19(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
+		lea		.resetv+12(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -3828,7 +3828,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3850,7 +3850,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3888,7 +3888,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -3903,7 +3903,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -3933,16 +3933,16 @@ LSP_MusicDriver:
 
 .r_ApBrCr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -3954,7 +3954,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -4007,13 +4007,13 @@ LSP_MusicDriver:
 
 .r_ArDp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
+		lea		.resetv+12(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4040,7 +4040,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -4054,7 +4054,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -4081,7 +4081,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -4120,20 +4120,20 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_AvBrCr:
 		move.b	(a0)+,$09(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		rts
 
 .r_AvCviDvpi:
@@ -4170,7 +4170,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -4238,20 +4238,20 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_ArCpDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
+		lea		.resetv+12(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4290,20 +4290,20 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_AvBpDr:
 		move.b	(a0)+,$09(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4319,16 +4319,16 @@ LSP_MusicDriver:
 .r_AvBrCpDr:
 		move.b	(a0)+,$09(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4350,7 +4350,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
 		move.w	(a2)+,$14(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -4397,7 +4397,7 @@ LSP_MusicDriver:
 		move.w	d0,$96-$a0(a6)
 		move.b	d0,(a0)
 		move.l	(a1),a0
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -4415,21 +4415,21 @@ LSP_MusicDriver:
 		move.b	(a0)+,$09(a6)
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
 		rts
 
 .r_ApBrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
+		lea		.resetv+8(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4452,19 +4452,19 @@ LSP_MusicDriver:
 .r_ArBrpCrDv:
 		move.b	(a0)+,$39(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4566,19 +4566,19 @@ LSP_MusicDriver:
 
 .r_ArBrpDr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,$10(a6)
-		move.w	(a2)+,$14(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,$10(a6)
+		move.w	(a4)+,$14(a6)
+		move.l	8(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4602,11 +4602,11 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
 		move.w	(a2)+,$14(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,8(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -4634,7 +4634,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,8(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -4663,19 +4663,19 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_BpDr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4690,7 +4690,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$16(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+8(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$10(a6)
@@ -4746,7 +4746,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -4794,7 +4794,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -4848,7 +4848,7 @@ LSP_MusicDriver:
 		move.b	d0,(a0)
 		move.l	(a1),a0
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -4867,17 +4867,17 @@ LSP_MusicDriver:
 
 .r_ArBpCrDp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$20(a6)
-		move.w	(a2)+,$24(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$36(a6)
 		move.w	(a0)+,$16(a6)
+		lea		.resetv+4(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$20(a6)
+		move.w	(a4)+,$24(a6)
+		move.l	4(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -4905,7 +4905,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -4920,7 +4920,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -4929,7 +4929,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -5079,7 +5079,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -5119,12 +5119,12 @@ LSP_MusicDriver:
 .r_ArDr:
 		move.l	a0,(a1)+
 		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	8(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		rts
 
 .r_AvpiBvCpi:
@@ -5138,7 +5138,7 @@ LSP_MusicDriver:
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
 		move.w	(a0)+,$06(a6)
-		lea		.resetv(pc),a3
+		lea		.resetv+4(pc),a3
 		movea.l	a1,a2
 		add.w	(a0)+,a2
 		move.l	(a2)+,$20(a6)
@@ -5147,31 +5147,31 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,4(a3)
 		move.l	a0,(a1)
 		rts
 
 .r_CpDr:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
 		move.l	a0,(a1)
 		rts
 
 .r_ArCp:
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
+		lea		.resetv+12(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -5193,7 +5193,7 @@ LSP_MusicDriver:
 		add.w	(a0)+,a2
 		move.l	(a2)+,(a6)
 		move.w	(a2)+,$04(a6)
-		move.l	a2,(a3)+
+		move.l	a2,8(a3)
 		move.l	a0,(a1)
 		rts
 
@@ -5201,16 +5201,16 @@ LSP_MusicDriver:
 		move.b	(a0)+,$29(a6)
 		move.b	(a0)+,$19(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,$30(a6)
-		move.w	(a2)+,$34(a6)
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
+		lea		.resetv(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,$30(a6)
+		move.w	(a4)+,$34(a6)
+		move.l	8(a3),a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
@@ -5250,13 +5250,13 @@ LSP_MusicDriver:
 .r_ArCvp:
 		move.b	(a0)+,$29(a6)
 		move.l	a0,(a1)+
-		lea		.resetv(pc),a3
-		move.l	(a3)+,a2
-		move.l	(a2)+,(a6)
-		move.w	(a2)+,$4(a6)
 		addq.w	#4,a1
 		move.l	(a1),a0
 		move.w	(a0)+,$26(a6)
+		lea		.resetv+12(pc),a3
+		move.l	(a3)+,a4
+		move.l	(a4)+,(a6)
+		move.w	(a4)+,$04(a6)
 		move.l	a0,(a1)
 		rts
 
