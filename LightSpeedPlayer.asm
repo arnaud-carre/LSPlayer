@@ -129,7 +129,7 @@ LSP_MusicDriver:
 
 .LSP_PlayerInit:
 			cmpi.l	#'LSP1',(a0)+
-			bne.s	.dataError
+			bne		.dataError
 			move.l	(a0)+,d0		; unique id
 			cmp.l	(a1),d0			; check that sample bank is this one
 			bne.s	.dataError
