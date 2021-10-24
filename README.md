@@ -27,7 +27,6 @@ LSPConvert options:
 	-v : verbose
 	-noinsane : do not generate insanely fast player
 	-nosampleoptim : preserve orginal .MOD soundbank layout
-	-renderwav : generate a .wav from .mod (output PC mod parser)
 	-amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)
 	-nosettempo : remove $Fxx>$20 SetTempo support (for old .mods compatiblity)
 ```

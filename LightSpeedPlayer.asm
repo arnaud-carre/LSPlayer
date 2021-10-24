@@ -1,12 +1,12 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.03
+;	Light Speed Player v1.04
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
 ;	twitter: @leonard_coder
 ;
-;	"small & fast" player version ( min/avg/peak = 0.25/1/2 scanline)
+;	"small & fast" player version ( average time: 1 scanline )
 ;	Less than 512 bytes of code!
 ;	You can also use generated "insane" player code for even more perf
 ;
@@ -15,8 +15,9 @@
 ;	bsr LSP_MusicDriver+0 : Init LSP player code
 ;		In:	a0: LSP music data(any memory)
 ;			a1: LSP sound bank(chip memory)
-;			a2: DMACON 8bits byte address
+;			a2: DMACON 8bits byte address (should be odd address!)
 ;		Out:a0: music BPM pointer (16bits)
+;			d0: music len in tick count
 ;
 ;	bsr LSP_MusicDriver+4 : LSP player tick (call once per frame)
 ;		In:	a6: should be $dff0a0
@@ -34,111 +35,83 @@ LSP_MusicDriver:
 			lea		.LSPVars(pc),a1
 			move.l	(a1),a0					; byte stream
 .process:	moveq	#0,d0
-			move.b	(a0)+,d0
+.cloop:		move.b	(a0)+,d0
 			bne.s	.swCode
-			move.w	#$0100,d0
-			move.b	(a0)+,d0
-			bne.s	.swCode
-			move.w	#$0200,d0
-			move.b	(a0)+,d0
+			addi.w	#$0100,d0
+			bra.s	.cloop
 .swCode:	add.w	d0,d0
 			move.l	m_codeTableAddr(a1),a2	; code table
 			move.w	0(a2,d0.w),d0			; code
 			beq		.noInst
-			bpl.s	.optim
-			cmpi.w	#$ffff,d0
+			cmp.w	m_escCodeRewind(a1),d0
 			beq		.r_rewind
-			cmpi.w	#$f00f,d0
+			cmp.w	m_escCodeSetBpm(a1),d0
 			beq		.r_chgbpm
-.optim:
-			moveq	#15,d1
-			and.w	d0,d1
 
-			add.w	d0,d0
-			bcc.s	.noRd
-			move.l	.resetv(pc),a3
-			move.l	(a3)+,$d0-$a0(a6)
-			move.w	(a3)+,$d4-$a0(a6)
-.noRd:		add.w	d0,d0
-			bcc.s	.noRc
-			move.l	.resetv+4(pc),a3
-			move.l	(a3)+,$c0-$a0(a6)
-			move.w	(a3)+,$c4-$a0(a6)
-.noRc:		add.w	d0,d0
-			bcc.s	.noRb
-			move.l	.resetv+8(pc),a3
-			move.l	(a3)+,$b0-$a0(a6)
-			move.w	(a3)+,$b4-$a0(a6)
-.noRb:		add.w	d0,d0
-			bcc.s	.noRa
-			move.l	.resetv+12(pc),a3
-			move.l	(a3)+,(a6)
-			move.w	(a3)+,$a4-$a0(a6)
-.noRa:		
-
-			add.w	d0,d0
+			add.b	d0,d0
 			bcc.s	.noVd
 			move.b	(a0)+,$d9-$a0(a6)
-.noVd:		add.w	d0,d0
+.noVd:		add.b	d0,d0
 			bcc.s	.noVc
 			move.b	(a0)+,$c9-$a0(a6)
-.noVc:		add.w	d0,d0
+.noVc:		add.b	d0,d0
 			bcc.s	.noVb
 			move.b	(a0)+,$b9-$a0(a6)
-.noVb:		add.w	d0,d0
+.noVb:		add.b	d0,d0
 			bcc.s	.noVa
 			move.b	(a0)+,$a9-$a0(a6)
 .noVa:		
 			move.l	a0,(a1)+	; store byte stream ptr
 			move.l	(a1),a0		; word stream
 
-			add.w	d0,d0
+			tst.b	d0
+			beq.s	.noPa
+
+			add.b	d0,d0
 			bcc.s	.noPd
 			move.w	(a0)+,$d6-$a0(a6)
-.noPd:		add.w	d0,d0
+.noPd:		add.b	d0,d0
 			bcc.s	.noPc
 			move.w	(a0)+,$c6-$a0(a6)
-.noPc:		add.w	d0,d0
+.noPc:		add.b	d0,d0
 			bcc.s	.noPb
 			move.w	(a0)+,$b6-$a0(a6)
-.noPb:		add.w	d0,d0
+.noPb:		add.b	d0,d0
 			bcc.s	.noPa
 			move.w	(a0)+,$a6-$a0(a6)
 .noPa:		
-			tst.w	d1
+			tst.w	d0
 			beq.s	.noInst
 
-			move.l	m_dmaconPatch-4(a1),a3		; dmacon patch
-			move.w	d1,$96-$a0(a6)				; switch off DMA
-			move.b	d1,(a3)						; dmacon			
+			moveq	#0,d1
 			move.l	m_lspInstruments-4(a1),a2	; instrument table
+			lea		.resetv+12(pc),a4
 
-			lea		.resetv(pc),a3
+			lea		3*16(a6),a5
+			moveq	#4-1,d2
+
+.vloop:		add.w	d0,d0
+			bcs.s	.setIns
 			add.w	d0,d0
-			bcc.s	.noId
-			add.w	(a0)+,a2
-			move.l	(a2)+,$d0-$a0(a6)
-			move.w	(a2)+,$d4-$a0(a6)
-			move.l	a2,(a3)
-.noId:		add.w	d0,d0
-			bcc.s	.noIc
-			add.w	(a0)+,a2
-			move.l	(a2)+,$c0-$a0(a6)
-			move.w	(a2)+,$c4-$a0(a6)
-			move.l	a2,4(a3)
-.noIc:		add.w	d0,d0
-			bcc.s	.noIb
-			add.w	(a0)+,a2
-			move.l	(a2)+,$b0-$a0(a6)
-			move.w	(a2)+,$b4-$a0(a6)
-			move.l	a2,8(a3)
-.noIb:		add.w	d0,d0
-			bcc.s	.noIa
-			add.w	(a0)+,a2
-			move.l	(a2)+,(a6)
-			move.w	(a2)+,$a4-$a0(a6)
-			move.l	a2,12(a3)
-.noIa:		
+			bcc.s	.skip
+			move.l	(a4),a3
+			move.l	(a3)+,(a5)
+			move.w	(a3)+,4(a5)
+			bra.s	.skip
+.setIns:	add.w	(a0)+,a2
+			add.w	d0,d0
+			bcc.s	.noReset
+			bset	d2,d1
+			move.w	d1,$96-$a0(a6)
+.noReset:	move.l	(a2)+,(a5)
+			move.w	(a2)+,4(a5)
+			move.l	a2,(a4)
+.skip:		subq.w	#4,a4
+			lea		-16(a5),a5
+			dbf		d2,.vloop
+
+			move.l	m_dmaconPatch-4(a1),a3		; dmacon patch
+			move.b	d1,(a3)						; dmacon			
 
 .noInst:	move.l	a0,(a1)			; store word stream (or byte stream if coming from early out)
 			rts
@@ -149,24 +122,6 @@ LSP_MusicDriver:
 
 .r_chgbpm:	move.b	(a0)+,(m_currentBpm+1)(a1)	; BPM
 			bra		.process
-
-
-	rsreset
-	
-m_byteStream:		rs.l	1	;  0 byte stream
-m_wordStream:		rs.l	1	;  4 word stream
-m_dmaconPatch:		rs.l	1	;  8 m_lfmDmaConPatch
-m_codeTableAddr:	rs.l	1	; 12 code table addr
-m_lspInstruments:	rs.l	1	; 16 LSP instruments table addr
-m_relocDone:		rs.w	1	; 20 reloc done flag
-m_currentBpm:		rs.w	1	; 22 current BPM
-m_byteStreamLoop:	rs.l	1	; 24 byte stream loop point
-m_wordStreamLoop:	rs.l	1	; 28 word stream loop point
-sizeof_LSPVars:		rs.w	0
-
-.LSPVars:	ds.b	sizeof_LSPVars
-			
-.resetv:	dc.l	0,0,0,0
 
 ; a0: music data (any mem)
 ; a1: sound bank data (chip mem)
@@ -180,25 +135,26 @@ sizeof_LSPVars:		rs.w	0
 			bne.s	.dataError
 
 			lea		.LSPVars(pc),a3
-			move.w	(a0)+,d0				; skip major & minor version of LSP
+			cmpi.w	#$0104,(a0)+			; major & minor version of LSP
+			bne.s	.dataError
 			move.w	(a0)+,m_currentBpm(a3)	; default BPM
+			move.w	(a0)+,m_escCodeRewind(a3)
+			move.w	(a0)+,m_escCodeSetBpm(a3)
+			move.l	(a0)+,-(a7)
 			move.l	a2,m_dmaconPatch(a3)
+			move.w	#$8000,-1(a2)			; Be sure DMACon word is $8000 (note: a2 should be ODD address)
 			move.w	(a0)+,d0				; instrument count
 			lea		-12(a0),a2				; LSP data has -12 offset on instrument tab ( to win 2 cycles in fast player :) )
 			move.l	a2,m_lspInstruments(a3)	; instrument tab addr ( minus 4 )
-			tst.b	m_relocDone(a3)
-			bne.s	.skip
-			st		m_relocDone(a3)
 			subq.w	#1,d0
 			move.l	a1,d1
-.relocLoop:	add.l	d1,(a0)
+.relocLoop:	bset.b	#0,3(a0)				; bit0 is relocation done flag
+			bne.s	.relocated
+			add.l	d1,(a0)
 			add.l	d1,6(a0)
-			lea		12(a0),a0
+.relocated:	lea		12(a0),a0
 			dbf		d0,.relocLoop
-			bra.s	.relocDone
-.skip:		mulu.w	#12,d0
-			add.l	d0,a0
-.relocDone:	move.w	(a0)+,d0				; codes count (+2)
+			move.w	(a0)+,d0				; codes count (+2)
 			move.l	a0,m_codeTableAddr(a3)	; code table
 			add.w	d0,d0
 			add.w	d0,a0
@@ -215,6 +171,26 @@ sizeof_LSPVars:		rs.w	0
 			move.l	a1,m_byteStreamLoop(a3)
 			bset.b	#1,$bfe001				; disabling this fucking Low pass filter!!
 			lea		m_currentBpm(a3),a0
+			move.l	(a7)+,d0				; music len in frame ticks
 			rts
 
 .dataError:	illegal
+
+	rsreset
+	
+m_byteStream:		rs.l	1	;  0 byte stream
+m_wordStream:		rs.l	1	;  4 word stream
+m_dmaconPatch:		rs.l	1	;  8 m_lfmDmaConPatch
+m_codeTableAddr:	rs.l	1	; 12 code table addr
+m_escCodeRewind:	rs.w	1
+m_escCodeSetBpm:	rs.w	1
+m_lspInstruments:	rs.l	1	; 16 LSP instruments table addr
+m_relocDone:		rs.w	1	; 20 reloc done flag
+m_currentBpm:		rs.w	1	; 22 current BPM
+m_byteStreamLoop:	rs.l	1	; 24 byte stream loop point
+m_wordStreamLoop:	rs.l	1	; 28 word stream loop point
+sizeof_LSPVars:		rs.w	0
+
+.LSPVars:	ds.b	sizeof_LSPVars
+			
+.resetv:	dc.l	0,0,0,0

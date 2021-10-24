@@ -5,6 +5,11 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.04
+	- full support of instrument without a note (rare protracker feature)
+	- support fx $e9 (re-trigger)
+	- fix 4 bytes offset bug with -nosampleoptim option
+
 v1.03
 	- fix a rare replen bug when $F01 speed is used
 

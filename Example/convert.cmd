@@ -1,2 +1,2 @@
-..\LSPConvert rink-a-dink.mod
+..\LSPConvert rink-a-dink.mod -amigapreview
 pause
