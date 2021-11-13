@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.04
+;	Light Speed Player v1.05
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -89,7 +89,7 @@ LSP_MusicDriver_CIA_Start:
 			btst.b	#0,$bfdd00
 			beq.s	.skipa
 			
-			movem.l	d0-d1/a0-a3/a6,-(a7)
+			movem.l	d0-d2/a0-a6,-(a7)
 
 		; call player tick
 			lea		$dff0a0,a6
@@ -113,7 +113,7 @@ LSP_MusicDriver_CIA_Start:
 			move.l	a0,(a1)
 			move.b	#$19,$bfdf00			; start timerB, one shot
 
-			movem.l	(a7)+,d0-d1/a0-a3/a6
+			movem.l	(a7)+,d0-d2/a0-a6
 .skipa:		nop
 			rte
 

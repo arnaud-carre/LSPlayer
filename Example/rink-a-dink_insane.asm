@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.04
+;	Light Speed Player v1.05
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -18,7 +18,7 @@
 ;	bsr LSP_MusicDriver+0 : Init LSP player code
 ;		a0: LSP music data(any memory)
 ;		a1: LSP sound bank(chip memory)
-;		a2: DMACON 8bits byte address
+;		a2: DMACON 8bits byte address (should be odd address!)
 ;
 ;	bsr LSP_MusicDriver+4 : LSP player tick (call once per frame)
 ;		a6: should be $dff0a0 (and not $dff000)
@@ -334,7 +334,7 @@ LSP_MusicDriver:
 ; a1: sound bank data (chip mem)
 ; a2: 8bit DMACON byte address
 .LSP_PlayerInit:
-			move.l	#$1cf8831d,d0
+			move.l	#$2198aaad,d0
 			cmp.l	(a1),d0
 			bne.s	.dataError
 			cmpi.l	#'LSP1',(a0)+

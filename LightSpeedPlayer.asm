@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.04
+;	Light Speed Player v1.05
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -21,7 +21,7 @@
 ;
 ;	bsr LSP_MusicDriver+4 : LSP player tick (call once per frame)
 ;		In:	a6: should be $dff0a0
-;			Scratched regs: d0/d1/d2/d3/a0/a1/a2/a3/a4/a5
+;			Scratched regs: d0/d1/d2/a0/a1/a2/a3/a4/a5
 ;		Out:None
 ;
 ;*****************************************************************
@@ -135,8 +135,8 @@ LSP_MusicDriver:
 			bne.s	.dataError
 
 			lea		.LSPVars(pc),a3
-			cmpi.w	#$0104,(a0)+			; major & minor version of latest compatible LSPConvert.exe
-			bne.s	.dataError
+			cmpi.w	#$0104,(a0)+			; minimal major & minor version of latest compatible LSPConvert.exe
+			blt.s	.dataError
 			move.w	(a0)+,m_currentBpm(a3)	; default BPM
 			move.w	(a0)+,m_escCodeRewind(a3)
 			move.w	(a0)+,m_escCodeSetBpm(a3)
