@@ -5,6 +5,10 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.05
+	- fix potential registers scratch in LightSpeedPlayer_cia.asm
+	- minor fix in LightSpeedPlayer.asm comments
+	
 v1.04
 	- full support of instrument without a note (rare protracker feature)
 	- support fx $e9 (re-trigger)
