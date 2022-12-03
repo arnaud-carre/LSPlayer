@@ -16,7 +16,7 @@
 			lea		LSPMusic,a0
 			lea		LSPBank,a1
 			lea		copperDMAConPatch+3,a2
-			bsr		LSP_MusicDriver
+			bsr		LSP_MusicInitInsane
 
 		; setup copper list & interrupt
 			move.l	#copperInterrupt,$6c.w
@@ -37,7 +37,7 @@ copperInterrupt:
 			
 			move.w	#$f00,$dff180
 			lea		$dff0a0,a6					; always set a6 to dff0a0 before calling LSP tick
-			bsr		LSP_MusicDriver+4			; player+4 = music tick
+			bsr		LSP_MusicPlayTickInsane		; player music tick
 			move.w	#$0,$dff180
 			
 			movem.l	(a7)+,d0/a0/a1/a2/a3

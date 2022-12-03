@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.06
+;	Light Speed Player v1.10
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -33,7 +33,7 @@ LSP_MusicDriver_CIA_Start:
 			lea		$78(a2),a2
 			move.l	a2,(a3)
 			lea		.LSPDmaCon+1(pc),a2		; DMACON byte patch address
-			bsr		LSP_MusicDriver+0		; init the LSP player ( whatever fast or insane version )
+			bsr		LSP_MusicInit			; init the LSP player ( whatever fast or insane version )
 
 			lea		.pMusicBPM(pc),a2
 			move.l	a0,(a2)					; store music BPM pointer
@@ -92,7 +92,7 @@ LSP_MusicDriver_CIA_Start:
 
 		; call player tick
 			lea		$dff0a0,a6
-			bsr		LSP_MusicDriver+4		; LSP main music driver tick
+			bsr		LSP_MusicPlayTick		; LSP main music driver tick
 
 		; check if BMP changed in the middle of the music
 			move.l	.pMusicBPM(pc),a0
