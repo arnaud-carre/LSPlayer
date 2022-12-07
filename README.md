@@ -1,4 +1,4 @@
-# Light Speed Player v1.10
+# Light Speed Player v1.11
 # The fastest Amiga music player ever
 
 ## What is LSP?
@@ -14,15 +14,15 @@ Here is a speed comparaison of different Amiga music players. Numbers are given 
 LSP Features  | Normal Mode | Insane Mode
 ----------|-------------|------------
 Code size | ~ 500 bytes | ~16KiB, depends of music
-Average Time | 0.88 scanline         | 0.44 scanline
-Peak Time | 2.33 scanlines   | 1.23 scanline
+Average Time | 0.82 scanline         | 0.46 scanline
+Peak Time | 2.27 scanlines   | 1.34 scanline
 Seq Timing support | yes     | no
 
 ## LSPConvert.exe
 
 To be so fast, LSP is using its own data format. LSPConvert is a win32 command line tool to convert any .mod file into LSP compatible files.
 ```c
-LSPConvert rink-a-dink.mod
+LSPConvert rink-a-dink.mod -insane
 ```
 This command will produce three files:
 - rink-a-dink.lsmusic : music score, to be loaded in any amiga memory
@@ -33,7 +33,8 @@ This command will produce three files:
 LSPConvert options:
         -v : verbose
         -insane : Generate insane mode fast replayer source code
-        -seqtiming : Add seq timing info to use Seek or GetPos function
+        -getpos : Enable LSP_MusicGetPos function use
+        -setpos : Enable LSP_MusicSetPos function use
         -nosampleoptim : preserve orginal .MOD soundbank layout
         -amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)
         -nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)

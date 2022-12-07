@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.10
+;	Light Speed Player v1.11
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -38,13 +38,14 @@ LSP_MusicInit:
 			lea		LSP_State(pc),a3
 			move.l	a2,m_dmaconPatch(a3)
 			move.w	#$8000,-1(a2)			; Be sure DMACon word is $8000 (note: a2 should be ODD address)
-			cmpi.w	#$010a,(a0)+			; v1.10 minimal major & minor version of latest compatible LSPConvert.exe
+			cmpi.w	#$010b,(a0)+			; v1.10 minimal major & minor version of latest compatible LSPConvert.exe
 			blt		.dataError
 			movea.l	a0,a4					; relocation flag ad
 			addq.w	#2,a0					; skip relocation flag
 			move.w	(a0)+,m_currentBpm(a3)	; default BPM
 			move.w	(a0)+,m_escCodeRewind(a3)
 			move.w	(a0)+,m_escCodeSetBpm(a3)
+			move.w	(a0)+,m_escCodeGetPos(a3)
 			move.l	(a0)+,-(a7)				; music len in frame ticks
 			move.w	(a0)+,d0				; instrument count
 			lea		-12(a0),a2				; LSP data has -12 offset on instrument tab ( to win 2 cycles in insane player :) )
@@ -67,6 +68,7 @@ LSP_MusicInit:
 			move.w	(a0)+,m_seqCount(a3)
 			beq.s	.noSeq
 			move.l	a0,m_seqTable(a3)
+			clr.w	m_currentSeq(a3)
 			move.w	m_seqCount(a3),d0
 			moveq	#0,d1
 			move.w	d0,d1
@@ -113,21 +115,15 @@ LSP_MusicInit:
 LSP_MusicPlayTick:
 			lea		LSP_State(pc),a1
 			move.l	(a1),a0					; byte stream
+			move.l	m_codeTableAddr(a1),a2	; code table
 .process:	moveq	#0,d0
 .cloop:		move.b	(a0)+,d0
-			bne.s	.swCode
-			addi.w	#$0100,d0
-			bra.s	.cloop
-.swCode:	add.w	d0,d0
-			move.l	m_codeTableAddr(a1),a2	; code table
+			beq		.cextended
+			add.w	d0,d0
 			move.w	0(a2,d0.w),d0			; code
 			beq		.noInst
-			cmp.w	m_escCodeRewind(a1),d0
-			beq		.r_rewind
-			cmp.w	m_escCodeSetBpm(a1),d0
-			beq		.r_chgbpm
 
-			add.b	d0,d0
+.cmdExec:	add.b	d0,d0
 			bcc.s	.noVd
 			move.b	(a0)+,$d9-$a0(a6)
 .noVd:		add.b	d0,d0
@@ -195,7 +191,24 @@ LSP_MusicPlayTick:
 .noInst:	move.l	a0,(a1)			; store word stream (or byte stream if coming from early out)
 			rts
 
-.r_rewind:	move.l	m_byteStreamLoop(a1),a0
+.cextended:	addi.w	#$100,d0
+			move.b	(a0)+,d0
+			beq.s	.cextended
+			add.w	d0,d0
+			move.w	0(a2,d0.w),d0			; code
+
+			cmp.w	m_escCodeRewind(a1),d0
+			beq.s	.r_rewind
+			cmp.w	m_escCodeSetBpm(a1),d0
+			beq.s	.r_chgbpm
+			cmp.w	m_escCodeGetPos(a1),d0
+			bne		.cmdExec
+
+.r_setPos:	move.b	(a0)+,(m_currentSeq+1)(a1)
+			bra		.process
+
+.r_rewind:	
+			move.l	m_byteStreamLoop(a1),a0
 			move.l	m_wordStreamLoop(a1),m_wordStream(a1)
 			bra		.process
 
@@ -212,16 +225,17 @@ LSP_MusicPlayTick:
 ;		In: d0: seq position (from 0 to last seq of the song)
 ;		Out:None
 ;
-;	Force the replay pointer to a seq. If music wasn't converted with
-;	-seqtiming option, this func does nothing
-;	If you specify an invalid (too high) seqpos, then undefined behavior :)
+;	Force the replay pointer to a seq position. If music wasn't converted
+;	using -setpos option, this func does nothing
 ;
 ;------------------------------------------------------------------
 LSP_MusicSetPos:
 			lea		LSP_State(pc),a3
 			move.w	m_seqCount(a3),d1
 			beq.s	.noTimingInfo
-
+			cmp.w	d1,d0
+			bge.s	.noTimingInfo
+			move.w	d0,m_currentSeq(a3)
 			move.l	m_seqTable(a3),a0
 			lsl.w	#3,d0
 			add.w	d0,a0
@@ -229,7 +243,6 @@ LSP_MusicSetPos:
 			move.l	(a0)+,m_byteStream(a3)
 .noTimingInfo:
 			rts
-	
 
 ;------------------------------------------------------------------
 ;
@@ -239,32 +252,13 @@ LSP_MusicSetPos:
 ;		Out: d0:  seq position (from 0 to last seq of the song)
 ;
 ;	Get the current seq position. If music wasn't converted with
-;	-seqtiming option, this func does nothing
-;	Fun fact: this function is not optimized and can take more time
-;	than the player itself :) Use it with care
-;
-;	A better (faster) way to sync music & gfx effect with LSP is
-;	just to keep track of music frame counter (and just wait for a
-;	certain frame to trigger some graphics)
+;	-getpos option, this func just returns 0
 ;
 ;------------------------------------------------------------------
 LSP_MusicGetPos:
 			lea		LSP_State(pc),a3
-			moveq	#0,d0					; seq pos
-			move.w	m_seqCount(a3),d1
-			beq.s	.noTimingInfo
-			move.l	m_wordStream(a3),a0		; current word stream ptr
-			move.l	m_seqTable(a3),a2
-			subq.w	#1,d1					; highest seq pos
-.sLoop:		addq.w	#8,a2
-			cmp.l	(a2),a0
-			blt.s	.noTimingInfo
-			addq.w	#1,d0
-			cmp.w	d0,d1
-			bne.s	.sLoop
-.noTimingInfo:
+			move.w	m_currentSeq(a3),d0
 			rts
-
 
 	rsreset
 	
@@ -281,6 +275,8 @@ m_byteStreamLoop:	rs.l	1	; 28 byte stream loop point
 m_wordStreamLoop:	rs.l	1	; 32 word stream loop point
 m_seqCount:			rs.w	1
 m_seqTable:			rs.l	1
+m_currentSeq:		rs.w	1
+m_escCodeGetPos:	rs.w	1
 sizeof_LSPVars:		rs.w	0
 
 LSP_State:			ds.b	sizeof_LSPVars
