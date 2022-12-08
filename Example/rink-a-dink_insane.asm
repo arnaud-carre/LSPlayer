@@ -34,7 +34,7 @@ LSP_MusicInitInsane:
 			cmp.l	(a0)+,d0
 			bne.s	.dataError
 			lea		2(a0),a5		; relocation byte
-			lea		886(a0),a0		; skip header
+			lea		890(a0),a0		; skip header
 			lea		LSP_StateInsane(pc),a3
 			move.l	a2,12(a3)
 			move.l	a0,16(a3)		; word stream ptr
@@ -122,7 +122,7 @@ LSP_MusicPlayTickInsane:
 
 .resetv:	dc.l	0,0,0,0
 
-.LSP_JmpTable:		; (256 codes)
+.LSP_JmpTable:		; (258 codes)
 			dc.w	-1		; extended code
 			dc.w	.r_None-.LSP_JmpTable
 			dc.w	.r_Dv-.LSP_JmpTable
@@ -381,8 +381,10 @@ LSP_MusicPlayTickInsane:
 			dc.w	$0000		; dummy code
 			dc.w	-1		; extended code
 			dc.w	.r_rewind-.LSP_JmpTable
+			dc.w	$0000		; SetBpm code (not used in this music)
+			dc.w	$0000		; no GetPos (not supported in insane player)
 
-; 255 specific callback
+; 257 specific callback
 .r_None:
 		move.l	a0,(a1)+
 		rts
