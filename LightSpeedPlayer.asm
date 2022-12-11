@@ -256,8 +256,7 @@ LSP_MusicSetPos:
 ;
 ;------------------------------------------------------------------
 LSP_MusicGetPos:
-			lea		LSP_State(pc),a3
-			move.w	m_currentSeq(a3),d0
+			move.w	(LSP_State+m_currentSeq)(pc),d0
 			rts
 
 	rsreset
