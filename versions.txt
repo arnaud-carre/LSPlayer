@@ -6,9 +6,8 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 Version History
 ---------------
 v1.11
-	- Now use -getpos argument to include data if you need LSP_MusicSetPos function
-	- Now use -setpos argument to include data if you need LSP_MusicGetPos function
-	- LSP_MusicGetPos is now almost free
+	- Now use -getpos argument to include data if you need LSP_MusicGetPos function
+	- Now use -setpos argument to include data if you need LSP_MusicSetPos function
 	- Fixed relocation bug in insane mode if you call LSP_MusicInit two times on same music
 
 v1.10
