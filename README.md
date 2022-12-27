@@ -14,7 +14,7 @@ Here is a speed comparaison of different Amiga music players. Numbers are given 
 LSP Features  | Normal Mode | Insane Mode
 ----------|-------------|------------
 Code size | ~ 500 bytes | ~16KiB, depends of music
-Average Time | 0.82 scanline         | 0.46 scanline
+Average Time | 0.83 scanline         | 0.46 scanline
 Peak Time | 2.27 scanlines   | 1.34 scanline
 Seq Timing support | yes     | no
 
