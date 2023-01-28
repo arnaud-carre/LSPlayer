@@ -2,7 +2,7 @@
 ;
 ;	Light Speed Player v1.11
 ;	Fastest Amiga MOD player ever :)
-;	Written By Arnaud Carré (aka Leonard / OXYGENE)
+;	Written By Arnaud Carrï¿½ (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
 ;	twitter: @leonard_coder
 ;
@@ -83,9 +83,7 @@ LSP_MusicInit:
 .skipRel:	addq.w	#8,a0
 			dbf		d0,.seqRel
 
-.noSeq:		move.l	(a0)+,d0				; word stream size
-			move.l	(a0)+,d1				; byte stream loop point
-			move.l	(a0)+,d2				; word stream loop point
+.noSeq:		movem.l	(a0)+,d0-d2				; word stream size, byte stream loop point, word stream loop point
 
 			st		(a4)					; mark this music score as "relocated"
 
