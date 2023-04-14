@@ -12,8 +12,8 @@
 ;
 ;	LSP_MusicInit		Initialize a LSP driver + relocate score&bank music data
 ;	LSP_MusicPlayTick	Play a LSP music (call it per frame)
-;	LSP_MusicGetPos		Get mod seq pos (see -seqtiming option in LSPConvert)
-;	LSP_MusicSetPos		Set mod seq pos (see -seqtiming option in LSPConvert)
+;	LSP_MusicGetPos		Get mod seq pos (see -getpos option in LSPConvert)
+;	LSP_MusicSetPos		Set mod seq pos (see -setpos option in LSPConvert)
 ;
 ;*****************************************************************
 
@@ -53,7 +53,7 @@ LSP_MusicInit:
 			subq.w	#1,d0
 			move.l	a1,d1
 			movea.l	a0,a1					; keep relocated flag
-.relocLoop:	tst.b	(a4)				; bit0 is relocation done flag
+.relocLoop:	tst.b	(a4)					; relocation guard
 			bne.s	.relocated
 			add.l	d1,(a0)
 			add.l	d1,6(a0)
