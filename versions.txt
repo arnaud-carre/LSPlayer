@@ -5,6 +5,9 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.12
+	- Fixed -setpos and -getpos output data size (thanks Platon42)
+
 v1.11
 	- Now use -getpos argument to include data if you need LSP_MusicGetPos function
 	- Now use -setpos argument to include data if you need LSP_MusicSetPos function
