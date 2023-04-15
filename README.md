@@ -1,4 +1,4 @@
-# Light Speed Player v1.11
+# Light Speed Player v1.12
 # The fastest Amiga music player ever
 
 ## What is LSP?
