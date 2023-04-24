@@ -26,6 +26,10 @@
 ;
 ;	bsr LSP_MusicDriver_CIA_Stop : Stop LSP music replay
 ;
+;	bsr LSP_MusicDriver_CIA_SetVolume : Set the current volume to value in d0
+;		d0: volume to use (0-64)
+;		trashes a0
+;
 ;*****************************************************************
 LSP_MusicDriver_CIA_Start:
 			move.w	d0,-(a7)
@@ -51,6 +55,9 @@ LSP_MusicDriver_CIA_Start:
 .ciaClock:	dc.l	0
 .curBpm:	dc.w	0
 .pMusicBPM:	dc.l	0
+	IFD LSP_FadeSupport
+.curVolume: dc.w 	64
+	ENDIF
 
 ; d0: music BPM
 ; d1: PAL(0) or NTSC(1)
@@ -94,6 +101,13 @@ LSP_MusicDriver_CIA_Start:
 			lea		$dff0a0,a6
 			bsr		LSP_MusicPlayTick		; LSP main music driver tick
 
+	IFD LSP_FadeSupport
+			move.w  .curVolume(pc),d0
+			cmp.w 	#64,d0
+			beq.s 	.noVolume
+			bsr		LSP_MusicFade
+.noVolume:
+	ENDIF
 		; check if BMP changed in the middle of the music
 			move.l	.pMusicBPM(pc),a0
 			move.w	(a0),d0					; current music BPM
@@ -129,6 +143,13 @@ LSP_MusicDriver_CIA_Start:
 .skipb:		move.w	#$2000,$dff09c
 			nop
 			rte
+
+	IFD LSP_FadeSupport
+LSP_MusicDriver_CIA_SetVolume:
+			lea 	.curVolume(pc),a0
+			move.w 	d0,(a0)
+			rts
+	ENDIF
 
 LSP_MusicDriver_CIA_Stop:
 			move.b	#$7f,$bfdd00
