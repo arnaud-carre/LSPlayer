@@ -1,4 +1,4 @@
-# Light Speed Player v1.12
+# Light Speed Player v1.13
 # The fastest Amiga music player ever
 
 ## What is LSP?
@@ -35,6 +35,7 @@ LSPConvert options:
         -insane : Generate insane mode fast replayer source code
         -getpos : Enable LSP_MusicGetPos function use
         -setpos : Enable LSP_MusicSetPos function use
+		-shrink : optimize sample bank size (remove sample bytes that won't be replayed)
         -nosampleoptim : preserve orginal .MOD soundbank layout
         -amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)
         -nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)
