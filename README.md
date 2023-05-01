@@ -18,6 +18,23 @@ Average Time | 0.83 scanline         | 0.46 scanline
 Peak Time | 2.27 scanlines   | 1.34 scanline
 Seq Timing support | yes     | no
 
+## LSP is production ready!
+
+LSP is already used in plenty of Amiga (and Atari :)) productions. Some are listed here:
+
+Demo  | Type | Info
+----------|-------------|------------
+[Cycle-Op by Oxygene](https://www.pouet.net/prod.php?which=94129) | Amiga OCS Demo | 3rd at Revision 2023
+[4kAsm by Lemon.](https://www.pouet.net/prod.php?which=88604) | Amiga OCS 4KiB intro | 3rd at Revision 2021
+[4k MegaScroller by Oxygene](https://www.pouet.net/prod.php?which=91996) | Atari STE 4KiB intro | 1st at SillyVenture 2022
+[Water My Grey Beard by Loonies](https://www.pouet.net/prod.php?which=93409) | Amiga OCS 40KiB | 1st at Gerp 2023
+[Frustro by Desire](https://www.pouet.net/prod.php?which=93416) | Amiga OCS 40KiB | 2nd at Gerp 2023
+[Clubisque by SMFX & friends](https://www.pouet.net/prod.php?which=93403) | Amiga OCS Demo | 1st at Gerp 2023
+[4KMOD by Oxygene & Alcatraz](https://www.pouet.net/prod.php?which=90430) | Atari STE 4KiB Intro | 2nd at Sillyventure 2021
+
+More complete list can be found [here!](https://www.pouet.net/lists.php?which=200)
+
+
 ## LSPConvert.exe
 
 To be so fast, LSP is using its own data format. LSPConvert is a win32 command line tool to convert any .mod file into LSP compatible files.
