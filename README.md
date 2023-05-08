@@ -24,6 +24,7 @@ LSP is already used in plenty of Amiga (and Atari :)) productions. Some are list
 
 Demo  | Type | Info
 ----------|-------------|------------
+[HAMazing by Desire](https://www.pouet.net/prod.php?which=94348) | Amiga OCS Demo | 1st at 68k Inside 2023
 [Cycle-Op by Oxygene](https://www.pouet.net/prod.php?which=94129) | Amiga OCS Demo | 3rd at Revision 2023
 [4kAsm by Lemon.](https://www.pouet.net/prod.php?which=88604) | Amiga OCS 4KiB intro | 3rd at Revision 2021
 [4k MegaScroller by Oxygene](https://www.pouet.net/prod.php?which=91996) | Atari STE 4KiB intro | 1st at SillyVenture 2022
