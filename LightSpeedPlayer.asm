@@ -2,7 +2,7 @@
 ;
 ;	Light Speed Player v1.13
 ;	Fastest Amiga MOD player ever :)
-;	Written By Arnaud Carr� (aka Leonard / OXYGENE)
+;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
 ;	twitter: @leonard_coder
 ;
