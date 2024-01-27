@@ -1,10 +1,14 @@
 LSP - Light Speed Player
-Fastest Amiga MOD player ever
+https://github.com/arnaud-carre/LSPlayer
+Fastest & Smallest Amiga MOD player ever
 Written by Leonard/Oxygene ( twitter @leonard_coder )
 
 ---------------
 Version History
 ---------------
+v1.20
+	- added "-micro" mode for tiny disk footprint intro such as 4KiB or 64KiB demos
+	
 v1.13
 	- added -shrink option to optimize sample bank size (remove sample bytes that won't be replayed)
 

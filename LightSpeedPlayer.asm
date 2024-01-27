@@ -1,14 +1,16 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.13
+;	Light Speed Player v1.20
 ;	Fastest Amiga MOD player ever :)
-;	Written By Arnaud CarrÃ© (aka Leonard / OXYGENE)
+;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
 ;	twitter: @leonard_coder
 ;
-;	"small & fast" player version ( average time: 1 scanline )
+;	"small & fast" standard player version ( average time: 1 scanline )
 ;	Less than 512 bytes of code!
-;	You can also use generated "insane" player code for half scanline replayer (-insane option)
+;
+;	You can also use "micro" mode for tiny disk footprint 4KiB demo ("-micro" option)
+;	Or you can use generated "ultra fast" player code for half scanline replayer ("-insane" option)
 ;
 ;	LSP_MusicInit		Initialize a LSP driver + relocate score&bank music data
 ;	LSP_MusicPlayTick	Play a LSP music (call it per frame)
@@ -23,7 +25,7 @@
 ;
 ;		In:	a0: LSP music data(any memory)
 ;			a1: LSP sound bank(chip memory)
-;			a2: DMACON low byte address (should be odd address!)
+;			a2: DMACON patching value low byte address (should be odd address!)
 ;		Out:a0: music BPM pointer (16bits)
 ;			d0: music len in tick count
 ;
@@ -32,13 +34,13 @@ LSP_MusicInit:
 			cmpi.l	#'LSP1',(a0)+
 			bne		.dataError
 			move.l	(a0)+,d0		; unique id
-			cmp.l	(a1),d0			; check that sample bank is this one
+			cmp.l	(a1),d0			; check sample bank matches the lsmusic file
 			bne		.dataError
 
 			lea		LSP_State(pc),a3
 			move.l	a2,m_dmaconPatch(a3)
 			move.w	#$8000,-1(a2)			; Be sure DMACon word is $8000 (note: a2 should be ODD address)
-			cmpi.w	#$010b,(a0)+			; v1.10 minimal major & minor version of latest compatible LSPConvert.exe
+			cmpi.w	#$010b,(a0)+			; this play routine supports v1.11 as minimal version of LPConvert.exe
 			blt		.dataError
 			movea.l	a0,a4					; relocation flag ad
 			addq.w	#2,a0					; skip relocation flag
@@ -84,9 +86,7 @@ LSP_MusicInit:
 			dbf		d0,.seqRel
 
 .noSeq:		movem.l	(a0)+,d0-d2				; word stream size, byte stream loop point, word stream loop point
-
 			st		(a4)					; mark this music score as "relocated"
-
 			move.l	a0,m_wordStream(a3)
 			lea		0(a0,d0.l),a1			; byte stream
 			move.l	a1,m_byteStream(a3)
