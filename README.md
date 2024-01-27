@@ -10,10 +10,7 @@ LSP comes now with three different modes to fit all your needs:
 - Micro mode: still fast ( 1.5 scanline on average ). Music format is made to be compression friendly. Suited for 4KiB or 40KiB intros
 
 Here is a speed comparaison of different Amiga music players. Numbers are given in "scanlines", measured on basic Amiga 500 OCS (PAL). Smaller is better
-
-![image info](./png/bench_peak.png)
-
-![image info](./png/bench_average.png)
+![image info](./png/benchmark.png)
 
 LSP Features  | Normal Mode | Insane Mode | Micro mode
 ----------|-------------|------------|------------
@@ -28,14 +25,18 @@ Sample without note | yes     | yes | no
 
 When using "micro" mode, the LSP music file will be larger in memory but compress very well. It's perfectly suited for small disk footprint applications such as 4KiB or 64KiB demos. 
 To showcase the new micro mode, we took the great "e255" amiga demo music by Moby as an exemple. We measure the size of the music data only (we removed the wav samples, keeping only music score)
-For a tiny disk footprint demo like 4KiB, you should also count the music player code size
 
+For a tiny disk footprint demo like 4KiB, you should also count the music player code size
 Shrinkler packed | Player code | Music data | Total
 --|----------------|-------------|----
 Protracker | 4208 | 2148 | **6356**
 the Player p61 | 2960 | 2944 | **5904**
 LSP Standard | 380 | 4312 | **4692**
 LSP Micro | 224 | 2340 | **2564**
+
+![image info](./png/packing.png)
+
+*Note: In micro mode, don't panic when you see that your .lsmusic file has doubled in size! It's expected to improve the compression ratio, which is the most important thing for a tiny demo*
 
 ## LSP is production ready!
 
