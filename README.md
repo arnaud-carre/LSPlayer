@@ -38,6 +38,8 @@ LSP Micro | 224 | 2340 | **2564**
 
 *Note: In micro mode, don't panic when you see that your .lsmusic file has doubled in size! It's expected to improve the compression ratio, which is the most important thing for a tiny demo*
 
+*Note: You can use "-pack" command line option to display an estimate of the .lsmusic Shrinkler compressed size*
+
 ## LSP is production ready!
 
 LSP is already used in plenty of Amiga (and Atari :)) productions. Some are listed here:
@@ -73,9 +75,11 @@ LSPConvert options:
         -insane : Generate insane mode fast replayer source code
         -getpos : Enable LSP_MusicGetPos function use
         -setpos : Enable LSP_MusicSetPos function use
-        -shrink : optimize sample bank size (remove sample bytes that won't be replayed)
+        -micro : Produce larger but highly compressible .lsmusic file (need micro replayer)
+        -shrink: shrink any non used sample data if possible
         -nosampleoptim : preserve orginal .MOD soundbank layout
         -amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)
+        -pack : display Amiga Schrinkler packing estimation size (.lsmusic file only)
         -nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)
 ```
 
