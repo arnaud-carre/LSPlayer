@@ -1,10 +1,14 @@
 # Light Speed Player v1.13
-# The fastest Amiga music player ever
+# The fastest & Smallest 68k MOD music player ever
 
 ## What is LSP?
 
-LSP (Light Speed Player) is a very fast Amiga music player. It can play any MOD file and *outperforms* all existing Amiga music player in speed.
-LSP comes with two different players: standard and insane. Standard is really fast, and insane is ultra fast!
+LSP (Light Speed Player) is the fastest 68000 MOD music player ever made. It can play any MOD file and *outperforms* all existing Amiga music player in speed.
+LSP comes now with three different modes to fit all your needs:
+- Standard mode: very fast ( average tick time is 1 scanline ), .MOD feature complete, less than 500bytes replay code
+- Insane mode: ultra fast ( half scanline on average ). Use it if you'are writing optimized world record demos such as [Cycle-Op](https://www.pouet.net/prod.php?which=94129) :)
+- Micro mode: still fast ( 1.5 scanline on average ). Music format is made to be compression friendly. Suited for 4KiB or 40KiB intros
+
 Here is a speed comparaison of different Amiga music players. Numbers are given in "scanlines", measured on basic Amiga 500 OCS (PAL). Smaller is better
 
 ![image info](./png/bench_peak.png)
@@ -19,6 +23,19 @@ Peak Time | 2.27 scanlines   | 1.34 scanline | 3.68 scanlines
 Seq Timing support | yes     | no | no
 variable BPM | yes     | yes | no
 Sample without note | yes     | yes | no
+
+## Note about the new "-micro" mode
+
+When using "micro" mode, the LSP music file will be larger in memory but compress very well. It's perfectly suited for small disk footprint applications such as 4KiB or 64KiB demos. 
+To showcase the new micro mode, we took the great "e255" amiga demo music by Moby as an exemple. We measure the size of the music data only (we removed the wav samples, keeping only music score)
+For a tiny disk footprint demo like 4KiB, you should also count the music player code size
+
+Shrinkler packed | Player code | Music data | Total
+--|----------------|-------------|----
+Protracker | 4208 | 2148 | **6356**
+the Player p61 | 2960 | 2944 | **5904**
+LSP Standard | 380 | 4312 | **4692**
+LSP Micro | 224 | 2340 | **2564**
 
 ## LSP is production ready!
 
