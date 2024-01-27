@@ -6,8 +6,8 @@
 ;	https://github.com/arnaud-carre/LSPlayer
 ;	twitter: @leonard_coder
 ;
-;	"micro mode" player version ( average time: 2 scanlines )
-;	This mode focus on music data compression ratio. suited for 4KiB or small intros
+;	"micro mode" player version ( average time: 1.5 scanline )
+;	This mode focus on music data compression ratio. Suited for 4KiB or small intros
 ;	Do not support various BPM, music getPos/setPos and sample without a note
 ;
 ;	You can also use classic "standard" player to support all features
