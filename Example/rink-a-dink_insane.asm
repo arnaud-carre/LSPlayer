@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.22
+;	Light Speed Player v1.23
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -26,7 +26,7 @@
 ;*****************************************************************
 
 LSP_MusicInitInsane:
-			move.l	#$2d0437ca,d0
+			move.l	#$e658e46f,d0
 			cmp.l	(a1),d0
 			bne.s	.dataError
 			cmpi.l	#'LSP1',(a0)+
@@ -38,8 +38,7 @@ LSP_MusicInitInsane:
 			lea		LSP_StateInsane(pc),a3
 			move.l	a2,12(a3)
 			move.l	a0,16(a3)		; word stream ptr
-			movea.l	a0,a4
-			add.l	#9634,a4
+			lea		9634(a0),a4
 			move.l	a4,8(a3)		; byte stream ptr
 
 			move.l	a0,(a3)	; word stream loop ptr
@@ -60,6 +59,12 @@ LSP_MusicInitInsane:
 			rts
 
 .dataError:	illegal
+
+LSP_MusicGetPos:
+			move.w	LSP_CurrentPos(pc),d0
+			rts
+
+LSP_CurrentPos:		dc.w	0
 LSP_StateInsane:	dc.l	0			; 0  word stream loop
 					dc.w	0			; 4  reloc has been done
 					dc.w	0			; 6  current music BPM
@@ -118,6 +123,9 @@ LSP_MusicPlayTickInsane:
 
 .r_rewind:	move.l	0-8(a1),16-8(a1)
 			move.l	24-8(a1),a0
+			bra.s	.process
+
+.r_getpos:	move.b	(a0)+,-9(a1)	; patch LSP_CurrentPos low byte
 			bra.s	.process
 
 .resetv:	dc.l	0,0,0,0
@@ -382,7 +390,7 @@ LSP_MusicPlayTickInsane:
 			dc.w	-1		; extended code
 			dc.w	.r_rewind-.LSP_JmpTable
 			dc.w	$0000		; SetBpm code (not used in this music)
-			dc.w	$0000		; no GetPos (not supported in insane player)
+			dc.w	.r_getpos-.LSP_JmpTable
 
 ; 257 specific callback
 .r_None:

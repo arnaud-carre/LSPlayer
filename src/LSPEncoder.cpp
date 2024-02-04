@@ -640,39 +640,26 @@ static int	ComputeCodesTableSize(int codesCount)
 	return h * 256 + l + 1;
 }
 
-int		LSPEncoder::ComputeLSPMusicSize(int dataStreamSize, bool microMode) const
+int		LSPEncoder::ComputeLSPMusicSize(int dataStreamSize) const
 {
-	int size = 8;	// LSP1+unique id
+	int size = 4;	// LSP1 or LSPm
+	size += 4;	// uniqueid
 	size += 2;		// major&minor version
-	if (!microMode)
-	{
-		assert(10 == size);		// if not true then change reloc offset in insane generated code
-		size += 2;		// reloc done flag
-		size += 2;		// music BPM
-		size += 2;		// esc code for rewind
-		size += 2;		// esc code for setbpm
-		size += 2;		// esc code for getpos
-	}
+	assert(10 == size);		// if not true then change reloc offset in insane generated code
+	size += 2;		// reloc done flag
+	size += 2;		// music BPM
+	size += 2;		// esc code for rewind
+	size += 2;		// esc code for setbpm
+	size += 2;		// esc code for getpos
 	size += 4;		// tick count
-	if ( microMode )
-		size += 4;		// frame loop
 	size += 2;		// LSP instrument count
 	size += m_lspIntrumentEncoder.GetCodesCount() * 12;
-	if (!microMode)
-	{
-		size += 2;		// codes count value
-		size += ComputeCodesTableSize(m_cmdEncoder.GetCodesCount()) * 2;
-		size += 2;		// seq count
-		if (m_seqFinalCount>0)
-			size += m_seqFinalCount * 8;
-		size += 4;		// word stream size
-		size += 4;		// byte stream loop point	
-		size += 4;		// word stream loop point
-	}
-	else
-	{
-		size += 4 * 16;	// size of each stream
-	}
+	size += 2;		// codes count value
+	size += ComputeCodesTableSize(m_cmdEncoder.GetCodesCount()) * 2;
+	size += 2;		// seq count ( should always be 0 in "insane mode" because no SetPos support )
+	size += 4;		// word stream size
+	size += 4;		// byte stream loop point	
+	size += 4;		// word stream loop point
 	size += dataStreamSize;
 	return size;
 }
@@ -1017,17 +1004,18 @@ bool	LSPEncoder::ExportToLSP()
 		cmdSize += ComputeCmdSize(rewindCode);
 	}
 
-	int streamsSize = 0;
-	for (int i = 0; i < streamCount; i++)
-		streamsSize += streams[i].GetSize();
-
-	const int lspScoreSize = ComputeLSPMusicSize(streamsSize, MicroMode());
 
 	ComputeAndFixSampleOffsets();
 
 	if (params.m_generateInsane)
 	{
 		assert(!MicroMode());
+		int streamsSize = 0;
+		for (int i = 0; i < streamCount; i++)
+			streamsSize += streams[i].GetSize();
+
+		const int lspScoreSize = ComputeLSPMusicSize(streamsSize);
+
 		FILE* hc;
 		if (fopen_s(&hc, params.m_sPlayerFilename, "w"))
 			return false;
@@ -1509,6 +1497,26 @@ static int	toKiB(int v)
 	return (v + 1023) >> 10;
 }
 
+static void	emitLea(FILE* h, int offset, int rs, int rd, const char* comment)
+{
+	if ( offset != 0 )
+	{
+		if ((offset >= -32768) && (offset <= 32767))
+			fprintf_s(h, "\t\t\tlea\t\t%d(a%d),a%d", offset, rs, rd);
+		else
+		{
+			if ( rs != rd )
+				fprintf_s(h, "\t\t\tmovea.l\ta%d,a%d\n", rs, rd);
+			fprintf_s(h, "\t\t\tadd.l\t#%d,a%d", offset, rd);
+		}
+
+		if ( comment )
+			fprintf_s(h, "\t; %s", comment);
+
+		fprintf_s(h, "\n");
+	}
+}
+
 bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 {
 	const ConvertParams& params = m_convertParams;
@@ -1556,7 +1564,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 			"\t\t\tcmp.l\t(a0)+,d0\n"
 			"\t\t\tbne.s\t.dataError\n", m_uniqueId);
 
-		const int skip = ComputeLSPMusicSize(0, false) - 8;	// already read 8 bytes ( LSP1 + unique id )
+		const int skip = ComputeLSPMusicSize(0) - 8;	// already read 8 bytes ( LSP1 + unique id )
 
 		fprintf_s(h, "\t\t\tlea\t\t2(a0),a5\t\t; relocation byte\n");
 		fprintf_s(h, "\t\t\tlea\t\t%d(a0),a0\t\t; skip header\n", skip);
@@ -1566,15 +1574,13 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 			"\t\t\tmove.l\ta2,12(a3)\n"
 			"\t\t\tmove.l\ta0,16(a3)\t\t; word stream ptr\n");
 
-		fprintf_s(h, "\t\t\tmovea.l\ta0,a4\n");
-		fprintf_s(h, "\t\t\tadd.l\t#%d,a4\n", wordStreamSize);
+		emitLea(h, wordStreamSize, 0, 4, nullptr);
 		fprintf_s(h, "\t\t\tmove.l\ta4,8(a3)\t\t; byte stream ptr\n\n");
 
-		if (m_wordStreamLoopPos > 0)
-			fprintf_s(h, "\t\t\tadd.l\t#%d,a0\t; word stream loop pos\n", m_wordStreamLoopPos);
+		emitLea(h, m_wordStreamLoopPos, 0, 0, "word stream loop pos");
 		fprintf_s(h, "\t\t\tmove.l\ta0,(a3)\t; word stream loop ptr\n");
-		if (m_byteStreamLoopPos > 0)
-			fprintf_s(h, "\t\t\tadd.l\t#%d,a4\t; byte stream loop pos\n", m_byteStreamLoopPos);
+	
+		emitLea(h, m_byteStreamLoopPos, 4, 4, "byte stream loop pos");
 		fprintf_s(h, "\t\t\tmove.l\ta4,24(a3)\t; byte stream loop ptr\n");
 
 
@@ -1603,8 +1609,17 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		fprintf_s(h, "\t\t\trts\n\n");
 
-		fprintf_s(h,
-			".dataError:\tillegal\n");
+		fprintf_s(h,".dataError:\tillegal\n\n");
+
+		fprintf_s(h, "LSP_MusicGetPos:\n");
+		if ( params.m_seqGetPosSupport )
+			fprintf_s(h, "\t\t\tmove.w\tLSP_CurrentPos(pc),d0\n");
+		else
+			fprintf_s(h, "\t\t\tmoveq\t#0,d0\t\t; (music have been generated without \"-getpos\" support)\n");
+		fprintf_s(h, "\t\t\trts\n\n");
+
+		if (params.m_seqGetPosSupport)
+			fprintf_s(h, "LSP_CurrentPos:\t\tdc.w\t0\n");
 
 		// gen LSPVars
 		fprintf_s(h,
@@ -1693,9 +1708,8 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		if (params.m_seqGetPosSupport)
 		{
-			fprintf_s(h,
-				".r_getpos:\taddq.w\t#1,a0\t; Insane mode just skip GetPos markers in the stream\n"
-				"\t\t\tbra.s\t.process\n\n");
+			fprintf_s(h,".r_getpos:\tmove.b\t(a0)+,-9(a1)\t; patch LSP_CurrentPos low byte\n"
+			          	"\t\t\tbra.s\t.process\n\n");
 		}
 
 		if (m_setBpmCount > 1)

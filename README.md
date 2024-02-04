@@ -1,4 +1,4 @@
-# Light Speed Player v1.22
+# Light Speed Player v1.23
 # The fastest & Smallest 68k MOD music player ever
 
 ## What is LSP?
@@ -17,7 +17,8 @@ LSP Features  | Normal Mode | Insane Mode | Micro mode
 Code size | ~ 500 bytes | ~16KiB, depends of music | packed 224 bytes
 Average Time | 0.83 scanline         | 0.46 scanline | 1.54 scanlines
 Peak Time | 2.27 scanlines   | 1.34 scanline | 3.68 scanlines
-Seq Timing support | yes     | no | no
+GetPos | yes     | yes | no
+SetPos | yes     | no | no
 variable BPM | yes     | yes | no
 Sample without note | yes     | yes | no
 

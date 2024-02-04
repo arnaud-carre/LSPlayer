@@ -116,9 +116,9 @@ bool	ConvertParams::ParseArgs(int argc, char* argv[])
 				printf("ERROR: Micro mode does not support GetPos or SetPos\n");
 				ret = false;
 			}
-			if (m_generateInsane)
+			if ((m_generateInsane) && (m_seqSetPosSupport))
 			{
-				printf("ERROR: Insane mode does not support GetPos or SetPos\n");
+				printf("ERROR: Insane mode does not support SetPos (only support GetPos)\n");
 				ret = false;
 			}
 		}
