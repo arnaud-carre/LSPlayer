@@ -83,9 +83,19 @@ LSPConvert options:
         -nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)
 ```
 
+## Compiling LSPConvert yourself
+
+If you're on windows system: download and install "Visual Studio 2022 Community", it's free and great. Open the src/LSPConvert.sln file project and profit!
+
+If you're another system, just format and install windows
+
 ## LSP Standard : LightSpeedPlayer.asm
 
 LSP standard is a very fast and *small* replayer. Player code is less than 512 bytes! ( it could fit in half a boot sector :) ). Standard player takes 1 rasterline average time. LightSpeedPlayer.asm is low level player. You have to call player tick each frame at the correct music rate. You also have to set DMACon using copper. You can have a look at Example_Insane.asm
+
+## LSP Micro : LightSpeedPlayer_micro.asm
+
+LSP "micro" mode is made for tiny disk footprint intros. See "Note about the new "-micro" mode"
 
 ## LSP Standard : LightSpeedPlayer_cia.asm
 

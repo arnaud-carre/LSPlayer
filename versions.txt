@@ -6,6 +6,10 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.22
+	- LSPConvert source code released
+	- minor optimization in LightSpeedPlayer_Micro.asm
+
 v1.21
 	- fixed "-amigapreview" wav generation when "-micro" mode
 

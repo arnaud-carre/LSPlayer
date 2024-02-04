@@ -121,7 +121,6 @@ LSP_MusicPlayTickMicro:
 			move.l	m_lspInstruments(a2),a0
 			add.w	d1,a0
 			bset	d7,d6
-			move.w	d6,$dff096
 			move.l	(a0)+,(a6)
 			move.w	(a0)+,4(a6)
 			move.l	(a0)+,(a3)+
@@ -130,6 +129,7 @@ LSP_MusicPlayTickMicro:
 .noInstr:
 			dbf		d7,.vLoop
 
+			move.w	d6,$dff096
 			move.w	d6,m_lastDmacon(a2)
 			move.l	m_dmaconPatch(a2),a0
 			move.b	d6,(a0)
