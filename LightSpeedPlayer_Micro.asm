@@ -25,7 +25,7 @@
 ;		In:	a0: LSP music data(any memory)
 ;			a1: LSP sound bank(chip memory)
 ;			a2: DMACON patching value low byte address (should be odd address!)
-;		Out:none
+;		Out:a0: music BPM pointer (16bits)
 ;
 ;------------------------------------------------------------------
 LSP_dataError:	illegal
@@ -33,11 +33,13 @@ LSP_dataError:	illegal
 LSP_MusicInitMicro:
 			cmpi.l	#'LSPm',(a0)+	; LSP "micro" mode signature
 			bne.s	LSP_dataError
-			cmpi.w	#$0114,(a0)+			; this play routine supports v1.20 as minimal version of LPConvert.exe
+			cmpi.w	#$0118,(a0)+			; this play routine supports v1.24 as minimal version of LPConvert.exe
 			blt.s	LSP_dataError
 			lea		LSPMicroVars(pc),a3
 			clr.w	m_lastDmacon(a3)
 			move.l	a2,m_dmaconPatch(a3)
+			move.w	(a0)+,d0				; default song BPM
+			pea		(a0)
 			move.w	(a0)+,d0				; instrument count
 			move.l	a0,m_lspInstruments(a3)	; instrument tab addr ( minus 4 )
 			subq.w	#1,d0
@@ -56,6 +58,7 @@ LSP_MusicInitMicro:
 			move.l	d1,(a2)+				
 		endr
 			bset.b	#1,$bfe001				; disabling this fucking Low pass filter!!
+			move.l	(a7)+,a0				; point on default BPM value (to please LightSpeedPlayer_cia.asm)
 			rts
 
 

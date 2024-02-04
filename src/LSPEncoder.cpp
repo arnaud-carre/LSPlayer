@@ -1146,6 +1146,8 @@ bool	LSPEncoder::ExportScore(const ConvertParams& params, MemoryStream* streams,
 			w16(h, m_EscValueGetPos);
 			w32(h, m_frameCount);
 		}
+		else
+			w16(h, m_bpm);
 
 		const int instrumentCount = m_lspIntrumentEncoder.GetCodesCount();
 		w16(h, u16(instrumentCount));

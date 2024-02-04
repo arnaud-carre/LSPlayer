@@ -1,4 +1,4 @@
-# Light Speed Player v1.23
+# Light Speed Player
 # The fastest & Smallest 68k MOD music player ever
 
 ## What is LSP?

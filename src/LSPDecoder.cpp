@@ -192,6 +192,8 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 					m_escCodeSetBpm = musicFile.ru16();
 					m_escCodeGetPos = musicFile.ru16();
 				}
+				else
+					bpm = musicFile.ru16();
 
 				printf("Main BPM: %d\n", bpm);
 
