@@ -85,9 +85,9 @@ LSPConvert options:
 
 ## Compiling LSPConvert yourself
 
-If you're on windows system: download and install "Visual Studio 2022 Community", it's free and great. Open the src/LSPConvert.sln file project and profit!
+If you're using windows system: download and install "Visual Studio 2022 Community", it's free and great. Open the src/LSPConvert.sln file project and profit!
 
-If you're another system, just format and install windows
+If you're using another system, just format and install windows
 
 ## LSP Standard : LightSpeedPlayer.asm
 
@@ -95,7 +95,7 @@ LSP standard is a very fast and *small* replayer. Player code is less than 512 b
 
 ## LSP Micro : LightSpeedPlayer_micro.asm
 
-LSP "micro" mode is made for tiny disk footprint intros. See "Note about the new "-micro" mode"
+LSP "micro" mode is made for tiny disk footprint intros. See "Note about the new -micro mode"
 
 ## LSP Standard : LightSpeedPlayer_cia.asm
 
