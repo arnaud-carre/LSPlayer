@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.13
+;	Light Speed Player v1.22
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -26,7 +26,7 @@
 ;*****************************************************************
 
 LSP_MusicInitInsane:
-			move.l	#$4415c592,d0
+			move.l	#$2d0437ca,d0
 			cmp.l	(a1),d0
 			bne.s	.dataError
 			cmpi.l	#'LSP1',(a0)+
@@ -34,7 +34,7 @@ LSP_MusicInitInsane:
 			cmp.l	(a0)+,d0
 			bne.s	.dataError
 			lea		2(a0),a5		; relocation byte
-			lea		1290(a0),a0		; skip header
+			lea		890(a0),a0		; skip header
 			lea		LSP_StateInsane(pc),a3
 			move.l	a2,12(a3)
 			move.l	a0,16(a3)		; word stream ptr
@@ -118,9 +118,6 @@ LSP_MusicPlayTickInsane:
 
 .r_rewind:	move.l	0-8(a1),16-8(a1)
 			move.l	24-8(a1),a0
-			bra.s	.process
-
-.r_getpos:	addq.w	#1,a0	; Insane mode just skip GetPos markers in the stream
 			bra.s	.process
 
 .resetv:	dc.l	0,0,0,0
@@ -385,7 +382,7 @@ LSP_MusicPlayTickInsane:
 			dc.w	-1		; extended code
 			dc.w	.r_rewind-.LSP_JmpTable
 			dc.w	$0000		; SetBpm code (not used in this music)
-			dc.w	.r_getpos-.LSP_JmpTable
+			dc.w	$0000		; no GetPos (not supported in insane player)
 
 ; 257 specific callback
 .r_None:

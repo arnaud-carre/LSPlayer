@@ -26,7 +26,7 @@ static const int		LSP_INSTRUMENT_MAX = 2600;		// theoretical max is 32767/12
 static const int		LSP_CMDWORD_MAX = 255 * 3;
 
 static	const	int		LSP_MAJOR_VERSION = 1;
-static	const	int		LSP_MINOR_VERSION = 21;
+static	const	int		LSP_MINOR_VERSION = 22;
 
 static const int kMicroModeStreamCount = 16;
 
