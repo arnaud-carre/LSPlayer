@@ -38,8 +38,8 @@ LSP_MusicInitMicro:
 			lea		LSPMicroVars(pc),a3
 			clr.w	m_lastDmacon(a3)
 			move.l	a2,m_dmaconPatch(a3)
-			move.w	(a0)+,d0				; default song BPM
 			pea		(a0)
+			move.w	(a0)+,d0				; default song BPM
 			move.w	(a0)+,d0				; instrument count
 			move.l	a0,m_lspInstruments(a3)	; instrument tab addr ( minus 4 )
 			subq.w	#1,d0
