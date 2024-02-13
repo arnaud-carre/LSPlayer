@@ -408,7 +408,7 @@ bool	LSPEncoder::LoadModule()
 		}
 		if (m_setBpmCount > 1)
 		{
-			printf("ERROR: \"-micro\" mode does NOT support BMP change within the song\n");
+			printf("ERROR: \"-micro\" mode does NOT support BPM change within the song\n");
 			ret = false;
 		}
 	}
