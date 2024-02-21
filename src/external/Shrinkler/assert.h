@@ -8,6 +8,10 @@ An assert function which contains a breakpoint, for ease of debugging.
 
 #pragma once
 
+#ifdef MACOS_LINUX
+#include <cstdio>
+#endif
+
 void internal_error() {
 	fflush(stdout);
 	fprintf(stderr,

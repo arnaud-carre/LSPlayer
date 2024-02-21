@@ -2,7 +2,7 @@
 
 	LSP (Light Speed Player) Converter
 	Fastest & Tiniest 68k MOD player ever!
-	Written by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
+	Written by Arnaud CarrÃ© aka Leonard/Oxygene (@leonard_coder)
 	https://github.com/arnaud-carre/LSPlayer
 
 *********************************************************************/
@@ -12,6 +12,9 @@
 #include <assert.h>
 #include <string.h>
 #include "MemoryStream.h"
+#ifdef MACOS_LINUX
+#include "WindowsCompat.h"
+#endif
 
 MemoryStream::MemoryStream()
 {
