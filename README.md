@@ -84,11 +84,31 @@ LSPConvert options:
         -nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)
 ```
 
+### macOS/Linux versions
+
+Find the relevant binaries in `builds`.
+
+macOS has been built at version 1.25 as Intel/Apple Silicon verified working on Sonoma.
+Linux has been built at version 1.25 verified working on Ubuntu 22.04 LTS.
+
 ## Compiling LSPConvert yourself
 
 If you're using windows system: download and install "Visual Studio 2022 Community", it's free and great. Open the src/LSPConvert.sln file project and profit!
 
-If you're using another system, just format and install windows
+Alternatively you can use the CMake instructions below.
+
+### macOS/Linux
+
+Install the relevant development tools for your system (CMake + Xcode/CLion/Linux tools).
+
+Issue the following commands:
+
+```
+cmake -Bbuild
+cmake --build build --config Release
+```
+
+Find the compiled executable in `build/LSPConvert`.
 
 ## LSP Standard : LightSpeedPlayer.asm
 
