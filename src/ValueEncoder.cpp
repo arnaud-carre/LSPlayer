@@ -108,7 +108,10 @@ int fCompare(const void *arg1, const void *arg2)
 {
 	const SortElement* pa = (const SortElement*)arg1;
 	const SortElement* pb = (const SortElement*)arg2;
-	return pb->count - pa->count;
+	if ( pb->count != pa->count)
+		return pb->count - pa->count;
+	else
+		return pb->code - pa->code;			// if count are equal, make the qsort stable by sorting by index
 }
 
 int	ValueEncoder::GetFirstUnusedValue() const

@@ -6,6 +6,9 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.25
+	- fixed internal sort to be stable (to produce exact same files on any platform)
+
 v1.24
 	- Fixed default BPM value with micro mode (now compatible with LightSpeedPlayer_cia.asm)
 
