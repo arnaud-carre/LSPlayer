@@ -1,3 +1,4 @@
 #pragma once
+#include <stdint.h>
 
-unsigned int CrcUpdate(unsigned int crc, const unsigned char *buffer, int length);
+uint32_t CrcUpdate(uint32_t crc, const uint8_t *buffer, int length);
