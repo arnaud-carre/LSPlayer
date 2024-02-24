@@ -2,7 +2,7 @@
 
 	LSP (Light Speed Player) Converter
 	Fastest & Tiniest 68k MOD player ever!
-	Written by Arnaud CarrÃ© aka Leonard/Oxygene (@leonard_coder)
+	Written by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
 	https://github.com/arnaud-carre/LSPlayer
 
 *********************************************************************/
@@ -1542,7 +1542,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 	fprintf_s(h,";\n"
 		";\tLight Speed Player v%d.%02d\n"
 		";\tFastest Amiga MOD player ever :)\n"
-		";\tWritten By Arnaud CarrÃ© (aka Leonard / OXYGENE)\n"
+		";\tWritten By Arnaud Carré (aka Leonard / OXYGENE)\n"
 		";\thttps://github.com/arnaud-carre/LSPlayer\n"
 		";\ttwitter: @leonard_coder\n"
 		";\n"

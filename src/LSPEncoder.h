@@ -2,7 +2,7 @@
 
 	LSP (Light Speed Player) Converter
 	Fastest & Tiniest 68k MOD player ever!
-	Written by Arnaud CarrÃ© aka Leonard/Oxygene (@leonard_coder)
+	Written by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
 	https://github.com/arnaud-carre/LSPlayer
 
 *********************************************************************/
@@ -25,11 +25,9 @@ static	const	int		PAULA_REPLAY_RATE_MAX = 28800;
 static const int		LSP_INSTRUMENT_MAX = 2600;		// theoretical max is 32767/12
 static const int		LSP_CMDWORD_MAX = 255 * 3;
 
-#ifndef MACOS_LINUX
 #ifndef LSP_MAJOR_VERSION
 static	const	int		LSP_MAJOR_VERSION = 1;
 static	const	int		LSP_MINOR_VERSION = 25;
-#endif
 #endif
 
 static const int kMicroModeStreamCount = 16;
