@@ -12,6 +12,9 @@
 #include <assert.h>
 #include <string.h>
 #include "MemoryStream.h"
+#ifdef MACOS_LINUX
+#include "WindowsCompat.h"
+#endif
 
 MemoryStream::MemoryStream()
 {

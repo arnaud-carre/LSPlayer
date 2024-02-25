@@ -351,3 +351,10 @@ MigrationBackup/
  
 *.wav
  
+
+# macOS/Linux files
+
+.idea/
+cmake-build-*/
+build/
+.DS_Store

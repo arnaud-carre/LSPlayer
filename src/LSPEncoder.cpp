@@ -18,6 +18,11 @@
 #include "crc32.h"
 #include "external/micromod/micromod.h"
 #include "WavWriter.h"
+#ifdef MACOS_LINUX
+#include <string>
+#include <filesystem>
+#include "WindowsCompat.h"
+#endif
 
 static const	int kWordStreamId = 0;
 static const	int kByteStreamId = 1;
@@ -31,6 +36,7 @@ int	ShrinklerCompressEstimate(u8* data, int size);
 
 void	ConvertParams::SetNameWithExtension(const char* src, char* dst, const char* sExt, const char* sNamePostfix)
 {
+#ifndef MACOS_LINUX
 	char sDrive[_MAX_DRIVE];
 	char sDir[_MAX_DIR];
 	char sName[_MAX_FNAME];
@@ -38,6 +44,15 @@ void	ConvertParams::SetNameWithExtension(const char* src, char* dst, const char*
 	if (sNamePostfix)
 		strcat_s(sName, sNamePostfix);
 	_makepath_s(dst, _MAX_PATH, sDrive, sDir, sName, sExt);
+#else
+    std::string srcStdStr { src };
+    std::filesystem::path srcPath { srcStdStr };
+    auto path = srcPath.parent_path().string();
+    if(!path.empty()) path += std::filesystem::path::preferred_separator;
+    auto stem = srcPath.stem();
+    auto newName = path + stem.string() + (sNamePostfix != NULL ? sNamePostfix : "") + sExt;
+    strcpy(dst, newName.c_str());
+#endif
 }
 
 
@@ -96,7 +111,7 @@ void	LSPEncoder::AddLSPInstrument(int id, int modInstrument, int sampleOffsetInB
 	// add sample to the LSP bank
 	assert(unsigned(id) < LSP_INSTRUMENT_MAX);
 	assert((modInstrument >= 1) && (modInstrument <= 31));
-	
+
 	LspSample& lspSample = m_lspSamples[modInstrument-1];
 
 	LSPInstrument& dst = m_lspIntruments[id];
@@ -160,7 +175,7 @@ bool	LSPEncoder::LoadModule()
 		int numchan = calculate_num_channels((signed char*)m_ModBuffer);
 		if (4 == numchan)
 		{
-			// compute unique id (MOD content + LSPEncoder version + convert parameters)		
+			// compute unique id (MOD content + LSPEncoder version + convert parameters)
 			u32 crc = CrcUpdate(~0, m_ModBuffer, m_ModFileSize);
 			static const u32 version[2] = { LSP_MAJOR_VERSION, LSP_MINOR_VERSION };
 			crc = CrcUpdate(crc, (const unsigned char*)version, sizeof(version));
@@ -658,7 +673,7 @@ int		LSPEncoder::ComputeLSPMusicSize(int dataStreamSize) const
 	size += ComputeCodesTableSize(m_cmdEncoder.GetCodesCount()) * 2;
 	size += 2;		// seq count ( should always be 0 in "insane mode" because no SetPos support )
 	size += 4;		// word stream size
-	size += 4;		// byte stream loop point	
+	size += 4;		// byte stream loop point
 	size += 4;		// word stream loop point
 	size += dataStreamSize;
 	return size;
@@ -1309,7 +1324,7 @@ void	LSPEncoder::GenLabel(int word, char* out)
 		sprintf(out, "None");
 }
 
-struct FetchInfo 
+struct FetchInfo
 {
 	int		voice;
 	int		voiceCode;
@@ -1581,7 +1596,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		emitLea(h, m_wordStreamLoopPos, 0, 0, "word stream loop pos");
 		fprintf_s(h, "\t\t\tmove.l\ta0,(a3)\t; word stream loop ptr\n");
-	
+
 		emitLea(h, m_byteStreamLoopPos, 4, 4, "byte stream loop pos");
 		fprintf_s(h, "\t\t\tmove.l\ta4,24(a3)\t; byte stream loop ptr\n");
 
@@ -1770,4 +1785,3 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 	return true;
 }
-
