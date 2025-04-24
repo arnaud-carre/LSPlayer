@@ -328,6 +328,12 @@ static void channel_row( struct channel *chan ) {
 		case 0x1E: /* Pattern Delay.*/
 			tick = speed + speed * param;
 			break;
+		default:
+		{
+			if ( 0x10 == (effect&0xf0) )
+				printf("Warning: unsupported fx E%x\n",effect&0xf);
+		}
+			break;
 	}
 	update_frequency( chan );
 }
