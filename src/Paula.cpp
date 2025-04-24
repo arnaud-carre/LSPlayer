@@ -125,7 +125,7 @@ int	Paula::PaulaVoice::ComputeNextSample(const s8* chipMemory, bool dmaOn)
 {
 	if (dmaOn)
 	{
-		audioDat = (chipMemory[ad + (pos >> kPaulaPosPrec)] * volume);
+		audioDat = chipMemory[ad + (pos >> kPaulaPosPrec)];
 		pos += step;
 		if ((pos >> kPaulaPosPrec) >= len)
 		{
@@ -135,5 +135,5 @@ int	Paula::PaulaVoice::ComputeNextSample(const s8* chipMemory, bool dmaOn)
 			pos &= (1 << kPaulaPosPrec) - 1;
 		}
 	}
-	return audioDat;
+	return audioDat * volume;
 }
