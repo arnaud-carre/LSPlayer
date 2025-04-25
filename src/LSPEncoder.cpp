@@ -244,7 +244,6 @@ bool	LSPEncoder::LoadModule()
 
 					// If any loop point, force the vol & per to be set
 					assert(m_frameLoop >= 0);
-					printf("Forcing vol & per set at frame %d\n", m_frameLoop);
 					for (int v=0;v<4;v++)
 					{
 						m_ChannelRowData[v][m_frameLoop].volSet = true;
