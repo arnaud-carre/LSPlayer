@@ -222,6 +222,9 @@ bool	LSPEncoder::LoadModule()
 					int previousDmacon = 0;
 					int previousInstrument[4] = {};
 
+					//---------------------------------------------------------------------------------------
+					// play the complete .mod and store all data per frame in LspFrameData & ChannelRowData
+					//---------------------------------------------------------------------------------------
 					while (0 == sequence_tick())
 					{
 						// run the mixer to get the exact amount of each instrument used
@@ -235,8 +238,26 @@ bool	LSPEncoder::LoadModule()
 							printf("Fatal ERROR: Music end detection issue (song is more than %d ticks)\n", m_frameMax);
 							return false;
 						}
+						m_frameCount++;
+						m_totalSampleCount += tick_len;
+					}
 
-						LspFrameData& out = m_RowData[m_frameCount];
+					// If any loop point, force the vol & per to be set
+					assert(m_frameLoop >= 0);
+					printf("Forcing vol & per set at frame %d\n", m_frameLoop);
+					for (int v=0;v<4;v++)
+					{
+						m_ChannelRowData[v][m_frameLoop].volSet = true;
+						m_ChannelRowData[v][m_frameLoop].perSet = true;
+					}
+
+					//---------------------------------------------------------------------------------------
+					// And now read back the data to produce LSP delta stream & proper wordCmd, including
+					// the right setVol and setPer at loop point
+					//---------------------------------------------------------------------------------------
+					for (int frame=0;frame<m_frameCount;frame++)
+					{
+						LspFrameData& out = m_RowData[frame];
 
 						int frameDmaCon = 0;
 						int frameVolMask = 0;
@@ -245,7 +266,7 @@ bool	LSPEncoder::LoadModule()
 
 						for (int v = 3; v >= 0; v--)
 						{
-							const ChannelRowData& data = m_ChannelRowData[v][m_frameCount];
+							const ChannelRowData& data = m_ChannelRowData[v][frame];
 
 							if (data.instrument > 0)
 							{
@@ -321,8 +342,6 @@ bool	LSPEncoder::LoadModule()
 						}
 
 						previousDmacon = frameDmaCon;
-						m_frameCount++;
-						m_totalSampleCount += tick_len;
 					}
 
 				// important: sort values to minimize "more than 1 byte" commands
