@@ -6,6 +6,10 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.26
+	- fixed potential wrong volume & period when looping
+	- added a "-looppreview" option to check if music looping is correct
+
 v1.25
 	- fixed internal sort to be stable (to produce exact same files on any platform)
 
