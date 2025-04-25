@@ -27,7 +27,7 @@ static const int		LSP_CMDWORD_MAX = 255 * 3;
 
 #ifndef LSP_MAJOR_VERSION
 static	const	int		LSP_MAJOR_VERSION = 1;
-static	const	int		LSP_MINOR_VERSION = 25;
+static	const	int		LSP_MINOR_VERSION = 26;
 #endif
 
 static const int kMicroModeStreamCount = 16;
@@ -42,6 +42,7 @@ struct ConvertParams
 		m_renderWav = false;
 		m_nosettempo = false;
 		m_amigaEmulation = false;
+		m_loopPreview = false;
 		m_lspMicro = false;
 		m_packEstimate = false;
 		m_seqGetPosSupport = false;
@@ -66,6 +67,7 @@ struct ConvertParams
 	bool		m_renderWav;
 	bool		m_nosettempo;
 	bool		m_amigaEmulation;
+	bool		m_loopPreview;
 	bool		m_lspMicro;
 	bool		m_packEstimate;
 	bool		m_seqGetPosSupport;

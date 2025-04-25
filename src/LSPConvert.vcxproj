@@ -188,6 +188,11 @@
     <ClInclude Include="ValueEncoder.h" />
     <ClInclude Include="WavWriter.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\LightSpeedPlayer.asm" />
+    <None Include="..\LightSpeedPlayer_cia.asm" />
+    <None Include="..\LightSpeedPlayer_Micro.asm" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

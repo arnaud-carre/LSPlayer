@@ -113,6 +113,12 @@ void	BinaryParser::skip(int len)
 	m_pos += len;
 }
 
+void	BinaryParser::seek(int pos)
+{
+	assert(m_pos <= m_dataLen);
+	m_pos = pos;
+}
+
 LSPDecoder::LSPDecoder()
 {
 }
@@ -137,7 +143,7 @@ static const int	BpmToSampleCount(int bpm)
 	return (HOST_REPLAY_RATE * 5) / (bpm * 2);
 }
 
-bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, const char* sOutputWavFile, bool verbose)
+bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, const char* sOutputWavFile, bool verbose, bool loopPreview)
 {
 
 	BinaryParser musicFile;
@@ -222,12 +228,16 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 				}
 
 				int streamsOffsets[16] = {};
+				int streamsLoopOffsets[16];
 
 				if (microMode)
 				{
 					m_codesCount = -1;
 					for (int i = 0; i < 16; i++)
+					{
 						streamsOffsets[i] = musicFile.ru32();
+						streamsLoopOffsets[i] = streamsOffsets[i];	// by default loop at very beginning
+					}
 				}
 				else
 				{
@@ -264,7 +274,9 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 				u32 nextAd[4] = {};
 				u16 nextLen[4] = {};
 
-				printf("Simulating LSP Amiga  player & Paula in \"%s\"\n", sOutputWavFile);
+				printf("Simulating LSP Amiga player & Paula in \"%s\"\n", sOutputWavFile);
+				if ( microMode )
+					printf("(LSP micro mode)\n");
 
 				AudioBuffer tmpBuffer(2);
 
@@ -273,9 +285,9 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 				u16 prevDmaCon = 0;
 
 				LSPHalfInstrument reset[4] = {};
-				bool endOfSong = false;
 
-				while (!endOfSong)
+				int loopCount = loopPreview ? 2 : 1;
+				while ( loopCount > 0)
 				{
 					if (microMode)
 					{
@@ -314,9 +326,22 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 								reset[v] = instr[1];
 							}
 
-							// end of song
-							if (3 == ((vCmd >> 3) & 3))
-								endOfSong = true;
+							// handle loop
+							const int loopCmd = (vCmd >> 3) & 3;
+							if ( 2 == loopCmd )
+							{
+								// backup loop points from current stream position
+								for (int s = 0; s < 16; s++)
+									streamsLoopOffsets[s] = streams[s].GetPos();
+							}
+							else if ( 3 == loopCmd )
+							{
+								// loop point, just restore the stream loop positions
+								for (int s = 0; s < 16; s++)
+									streams[s].seek(streamsLoopOffsets[s]);
+
+								loopCount--;
+							}
 
 						}
 						paulaChip.WriteDmaCon(dmaCon);
@@ -326,16 +351,22 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 					else
 					{
 						// normal mode
-						const u16 cmd = ReadNextCmd(streams[1]);
-
+						u16 cmd = ReadNextCmd(streams[1]);
 						if (m_escCodeRewind == cmd)
 						{
-							assert(frame == m_frameCount);
-							//						printf("End of transmission\n",frame);
-							break;
+							streams[0].seek(m_wordStreamLoop);
+							streams[1].seek(m_byteStreamLoop);
+							cmd = ReadNextCmd(streams[1]);
+
+							loopCount--;
+							if ( 0 == loopCount )
+							{
+								// in normal mode, end of stream appears in a "new" frame, so we should exit without generating the audio for this frame
+								// (note: this is not the case for "micro" mode)
+								break;
+							}
 						}
 
-						assert(frame < m_frameCount);
 						if (m_escCodeSetBpm == cmd)
 						{
 							bpm = streams[1].ru8();
@@ -440,12 +471,9 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 					paulaOutput.AddAudioData(buffer, frameSampleCount);
 					frame++;
 
-					if ((!microMode) && (frame >= int(m_frameCount)))
-						endOfSong = true;
-
-
 					totalSampleCount += frameSampleCount;
 				}
+
 				printf("End of streams. ( %d frames )\n", frame);
 				static const int seconds = totalSampleCount / HOST_REPLAY_RATE;
 				printf("Music duration: %dm%02ds\n", seconds / 60, seconds % 60);

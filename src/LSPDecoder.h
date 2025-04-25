@@ -33,6 +33,7 @@ public:
 	u32		ru32();
 	s16		rs16();
 	void	skip(int len);
+	void	seek(int pos);
 
 private:
 
@@ -52,7 +53,7 @@ class LSPDecoder
 public:
 	LSPDecoder();
 
-	bool	LoadAndRender(const char* sMusicName, const char* sBankName, const char* sOutputWavFile, bool verbose);
+	bool	LoadAndRender(const char* sMusicName, const char* sBankName, const char* sOutputWavFile, bool verbose, bool loopPreview);
 
 
 private:

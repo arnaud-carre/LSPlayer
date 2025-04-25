@@ -22,6 +22,9 @@
     <Filter Include="Source Files\external\micromod">
       <UniqueIdentifier>{7b8981f4-fbec-4ea2-a660-72bbcbc5f23b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\asm">
+      <UniqueIdentifier>{4ba5dd99-dac8-4e88-a819-d0cd87f95e36}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="crc32.cpp">
@@ -143,5 +146,16 @@
     <ClInclude Include="WavWriter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\LightSpeedPlayer.asm">
+      <Filter>Source Files\asm</Filter>
+    </None>
+    <None Include="..\LightSpeedPlayer_cia.asm">
+      <Filter>Source Files\asm</Filter>
+    </None>
+    <None Include="..\LightSpeedPlayer_Micro.asm">
+      <Filter>Source Files\asm</Filter>
+    </None>
   </ItemGroup>
 </Project>

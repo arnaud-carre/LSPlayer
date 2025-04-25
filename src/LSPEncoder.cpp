@@ -1083,7 +1083,7 @@ bool	LSPEncoder::ExportToLSP()
 	if (m_convertParams.m_amigaEmulation)
 	{
 		LSPDecoder decoder;
-		decoder.LoadAndRender(m_convertParams.m_sScoreFilename, m_convertParams.m_sBankFilename, m_convertParams.m_sAmigaWavFilename, m_convertParams.m_verbose);
+		decoder.LoadAndRender(m_convertParams.m_sScoreFilename, m_convertParams.m_sBankFilename, m_convertParams.m_sAmigaWavFilename, m_convertParams.m_verbose, m_convertParams.m_loopPreview);
 	}
 
 	if (m_convertParams.m_packEstimate)

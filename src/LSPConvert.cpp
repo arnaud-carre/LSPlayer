@@ -63,6 +63,10 @@ bool	ConvertParams::ParseArgs(int argc, char* argv[])
 			{
 				m_amigaEmulation = true;
 			}
+			else if (0 == strcmp(argv[argId], "-looppreview"))
+			{
+				m_loopPreview = true;
+			}
 			else if (0 == strcmp(argv[argId], "-pack"))
 			{
 				m_packEstimate = true;
@@ -148,6 +152,7 @@ void	Help()
 		"\t-shrink: shrink any non used sample data if possible\n"
 		"\t-nosampleoptim : preserve orginal .MOD soundbank layout\n"
 		"\t-amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)\n"
+		"\t-looppreview : generate longer wav preview if you want to test MOD looping\n"
 		"\t-pack : display Amiga Schrinkler packing estimation size (.lsmusic file only)\n"
 		"\t-nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)\n"
 	);
