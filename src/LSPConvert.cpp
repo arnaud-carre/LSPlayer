@@ -75,6 +75,10 @@ bool	ConvertParams::ParseArgs(int argc, char* argv[])
 			{
 				m_lspMicro = true;
 			}
+			else if (0 == strcmp(argv[argId], "-fixed50hz"))
+			{
+				m_fixed50hz = true;
+			}
 			else
 			{
 				printf("Unknown option \"%s\"\n", argv[argId]);
@@ -150,10 +154,11 @@ void	Help()
 		"\t-setpos : Enable LSP_MusicSetPos function use\n"
 		"\t-micro : Produce larger but highly compressible .lsmusic file (need micro replayer)\n"
 		"\t-shrink: shrink any non used sample data if possible\n"
-		"\t-nosampleoptim : preserve orginal .MOD soundbank layout\n"
+		"\t-nosampleoptim : preserve original .MOD soundbank layout (nice for AmigaKlang)\n"
 		"\t-amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)\n"
 		"\t-looppreview : generate longer wav preview if you want to test MOD looping\n"
 		"\t-pack : display Amiga Schrinkler packing estimation size (.lsmusic file only)\n"
+		"\t-fixed50hz : Makes 50hz player compatible even with other BPM than 125! (no CIA required)\n"
 		"\t-nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)\n"
 	);
 }

@@ -1,4 +1,4 @@
-# Light Speed Player v1.26
+# Light Speed Player v1.27
 # The fastest & Smallest 68k MOD music player ever
 
 ## What is LSP?
@@ -21,6 +21,10 @@ GetPos | yes     | yes | no
 SetPos | yes     | no | no
 variable BPM | yes     | yes | no
 Sample without note | yes     | yes | no
+
+## What's new
+
+Read the [versions.txt](./versions.txt)
 
 ## Note about the new "-micro" mode
 
@@ -78,9 +82,11 @@ LSPConvert options:
         -setpos : Enable LSP_MusicSetPos function use
         -micro : Produce larger but highly compressible .lsmusic file (need micro replayer)
         -shrink: shrink any non used sample data if possible
-        -nosampleoptim : preserve orginal .MOD soundbank layout
+        -nosampleoptim : preserve original .MOD soundbank layout (nice for AmigaKlang)
         -amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)
+        -looppreview : generate longer wav preview if you want to test MOD looping
         -pack : display Amiga Schrinkler packing estimation size (.lsmusic file only)
+        -fixed50hz : Makes 50hz player compatible even with other BPM than 125! (no CIA required)
         -nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)
 ```
 

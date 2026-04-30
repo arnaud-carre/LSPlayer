@@ -97,7 +97,9 @@ void	LSPEncoder::Reset()
 	m_periodEncoder.Setup(1 << 12, 256);
 	m_sampleOffsetUsed = false;
 	m_setBpmCount = 0;
+	m_setFilterCount = 0;
 	m_bpm = 125;
+	m_bpmEmulatedCounter = 0;
 	m_minTickRate = 50;
 	m_modInstrumentUsedMask = 0;
 	m_frameCount = 0;
@@ -439,13 +441,16 @@ bool	LSPEncoder::LoadModule()
 			printf("ERROR: \"-micro\" mode does NOT support \"sample without a note\" technic.\n");
 			ret = false;
 		}
-		if (m_setBpmCount > 1)
+		if ((m_setBpmCount > 1) && (!Fixed50Hz()))
 		{
-			printf("ERROR: \"-micro\" mode does NOT support BPM change within the song\n");
+			printf("ERROR: \"-micro\" mode does NOT support BPM change within the song (try -fixed50hz maybe)\n");
 			ret = false;
 		}
 	}
 
+	// following LSP file creation, bpm is 125 if -fixed50hz option
+	if (Fixed50Hz())
+		m_bpm = 125;
 
 	return ret;
 }
@@ -613,18 +618,47 @@ void	LSPEncoder::SetSampleFetch(int modSampleId, int offset)
 		info.resampleMaxLen = offset + 1;
 }
 
+bool LSPEncoder::IsEmulatedBpmTick(int speed)
+{
+	assert(Fixed50Hz());
+	m_bpmEmulatedCounter += m_bpm;
+	if (m_bpmEmulatedCounter >= 125 * speed)
+	{
+		m_bpmEmulatedCounter -= 125 * speed;
+		return true;
+	}
+	return false;
+}
+
+void LSPEncoder::SetFilter()
+{
+	m_setFilterCount++;
+}
+
 void	LSPEncoder::SetBPM(int bpm)
 {
 	if (bpm != m_bpm)
 	{
 		const int tickRate = (bpm * 2) / 5;
-		m_RowData[m_frameCount].bpm = bpm;
-		if ( m_convertParams.m_verbose )
-			printf("Set BPM to %d (%dHz)\n", bpm, tickRate);
+		if (m_convertParams.m_verbose)
+		{
+			if ( Fixed50Hz() )
+				printf("Fixed 50hz mode! (emulating BPM change to %d (%dHz))\n", bpm, tickRate);
+			else
+				printf("Set BPM to %d (%dHz)\n", bpm, tickRate);
+		}
 		m_setBpmCount++;
 		m_bpm = bpm;
-		if (tickRate < m_minTickRate)
-			m_minTickRate = tickRate;
+		if (Fixed50Hz())
+		{
+			m_bpmEmulatedCounter = 0;
+		}
+		else
+		{
+			m_RowData[m_frameCount].bpm = bpm;
+			if (tickRate < m_minTickRate)
+				m_minTickRate = tickRate;
+		}
 	}
 }
 
@@ -640,7 +674,14 @@ void	LSPEncoder::DisplayInfos()
 		printf("  Main BPM......: %d (%dHz)\n", m_bpm, (m_bpm * 2) / 5);
 
 	if ((m_setBpmCount > 1) || (m_bpm != 125))
-		printf("  Warning: Non conventional BPM, use CIA player!\n");
+	{
+		if (Fixed50Hz())
+			printf("  WARNING: Non conventional BPM with -fixed50hz option, CIA player *NOT* needed!\n");
+		else
+			printf("  WARNING: Non conventional BPM, use CIA player!\n");
+	}
+	if (m_setFilterCount > 0)
+		printf("  WARNING: Bypass SetFilter command E0 (not supported)\n");
 
 	if (m_convertParams.m_verbose)
 	{

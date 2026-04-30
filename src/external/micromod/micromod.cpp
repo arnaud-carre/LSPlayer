@@ -276,10 +276,15 @@ static void channel_row( struct channel *chan ) {
 				}
 				else
 				{
-					set_tempo(param);
+					if (!gLSPEncoder.Fixed50Hz())
+						set_tempo(param);			// if fixed50, do not modify amount of samples per tick
+
 					gLSPEncoder.SetBPM(param);
 				}
 			}
+			break;
+		case 0x10:
+			gLSPEncoder.SetFilter();
 			break;
 		case 0x11: /* Fine Portamento Up.*/
 			period = chan->period - param;
@@ -328,10 +333,14 @@ static void channel_row( struct channel *chan ) {
 		case 0x1E: /* Pattern Delay.*/
 			tick = speed + speed * param;
 			break;
+		case 0x19:
+		case 0x1d:
+			// These Fx effects are already parsed in channel_tick
+			break;
 		default:
 		{
-			if ( 0x10 == (effect&0xf0) )
-				printf("Warning: unsupported fx E%x\n",effect&0xf);
+			if ( effect&0x10 )
+				printf("Warning: unsupported channel_row fx E%x ($%x)\n",effect&0xf, effect);
 		}
 			break;
 	}
@@ -393,6 +402,23 @@ static void channel_tick( struct channel *chan ) {
 			break;
 		case 0x1D: /* Note Delay.*/
 			if( param == chan->fx_count ) trigger( chan );
+			break;
+		case 0x10:
+			gLSPEncoder.SetFilter();
+			break;
+		case 0x11:
+		case 0x12:
+		case 0x14:
+		case 0x16:
+		case 0x17:
+		case 0x1a:
+		case 0x1b:
+		case 0x1e:
+			// These Fx effects are already parsed in channel_row
+			break;
+		default:
+			if ( effect & 0x10 )
+				printf("Warning: Unsupported channel_tick fx E%x ($%x)\n", effect & 0xf, effect);
 			break;
 	}
 	if( effect > 0 ) update_frequency( chan );
@@ -459,10 +485,20 @@ static long sequence_row( void ) {
 long sequence_tick( void ) {
 	long song_end, chan_idx;
 	song_end = 0;
-	if( --tick <= 0 ) {
+
+	bool bTick = false;
+	if (gLSPEncoder.Fixed50Hz())
+		bTick = gLSPEncoder.IsEmulatedBpmTick(speed);
+	else
+		bTick = (--tick <= 0);
+
+	if( bTick )
+	{
 		tick = speed;
 		song_end = sequence_row();
-	} else {
+	}
+	else
+	{
 		for( chan_idx = 0; chan_idx < num_channels; chan_idx++ )
 			channel_tick( &channels[ chan_idx ] );
 	}

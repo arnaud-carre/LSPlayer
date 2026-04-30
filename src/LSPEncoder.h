@@ -27,7 +27,7 @@ static const int		LSP_CMDWORD_MAX = 255 * 3;
 
 #ifndef LSP_MAJOR_VERSION
 static	const	int		LSP_MAJOR_VERSION = 1;
-static	const	int		LSP_MINOR_VERSION = 26;
+static	const	int		LSP_MINOR_VERSION = 27;
 #endif
 
 static const int kMicroModeStreamCount = 16;
@@ -48,6 +48,7 @@ struct ConvertParams
 		m_seqGetPosSupport = false;
 		m_seqSetPosSupport = false;
 		m_shrink = false;
+		m_fixed50hz = false;
 	}
 
 	bool	ParseArgs(int argc, char* argv[]);
@@ -69,6 +70,7 @@ struct ConvertParams
 	bool		m_amigaEmulation;
 	bool		m_loopPreview;
 	bool		m_lspMicro;
+	bool		m_fixed50hz;
 	bool		m_packEstimate;
 	bool		m_seqGetPosSupport;
 	bool		m_seqSetPosSupport;
@@ -127,6 +129,7 @@ public:
 	void	SetSeqPos(int seqPos);
 	void	SetSeqLoop(int seqPos);
 	void	SetBPM(int bpm);
+	void 	SetFilter();
 	void	DisplayInfos();
 	void	SetModInstrumentInfo(int instr, s8* modSampleBank, int start, int len, int repStart, int repLen);
 
@@ -137,8 +140,9 @@ public:
 	bool	ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize);
 	bool	ExportToLSP();
 	bool	NoSetTempoCommand() const { return m_convertParams.m_nosettempo; }
+	bool	Fixed50Hz() const { return m_convertParams.m_fixed50hz; }
 	bool	MicroMode() const { return m_convertParams.m_lspMicro; }
-
+	bool 	IsEmulatedBpmTick(int speed);
 	bool	ParseArgs(int argc, char* argv[])
 	{
 		return m_convertParams.ParseArgs(argc, argv);
@@ -189,6 +193,7 @@ private:
 
 	bool	m_sampleOffsetUsed;
 	int		m_setBpmCount;
+	int m_setFilterCount;
 
 	int		m_bpm;
 	int		m_minTickRate;
@@ -200,6 +205,7 @@ private:
 	int		m_modDurationSec;
 
 	int		m_channelMaskFilter;
+	int 	m_bpmEmulatedCounter;
 
 	ValueEncoder	m_cmdEncoder;
 	ValueEncoder	m_lspIntrumentEncoder;

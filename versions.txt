@@ -6,6 +6,10 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.27
+	- added very new -fixed50hz option. In this mode, you can still use a 50hz VBL tick even if the song is not using 125 BPM. (basically you don't need CIA replayer anymore). In general you won't notice any difference, but some very small note jittering could happen depending on the music or BPM values. Feel free to use this nice option if it fits your needs.
+	- more robust unsupported fx messages ( ie SetFilter )
+	
 v1.26
 	- fixed potential wrong volume & period when looping
 	- added a "-looppreview" option to check if music looping is correct
