@@ -1,4 +1,4 @@
-# Light Speed Player v1.27
+# Light Speed Player v1.30
 # The fastest & Smallest 68k MOD music player ever
 
 ## What is LSP?
@@ -45,6 +45,18 @@ LSP Micro | 224 | 2340 | **2564**
 
 *Note: You can use "-pack" command line option to display an estimate of the .lsmusic Shrinkler compressed size*
 
+## ADPCM compression to reduce Disk layout
+
+LSP now supports optional basic ADPCM (more precisely, DPCM) sample compression, enabled via the -adpcm command-line option. In this mode, the .lsbank file remains the same size as before, but compresses to more than twice its size when using standard LZ-based algorithms (such as ZIP). This significantly reduces the footprint of your final executable or floppy image.
+
+When LSP is initialized, the samples are decompressed in place, so no changes are required in your user code or toolchain.
+
+If you notice any additional noise on certain instruments (such as cymbals), you can selectively disable compression for those specific samples. This lets you preserve top-quality audio where needed while still benefiting from reduced disk usage overall (see the -lossless <n> option).
+
+As an example, here are three well-known demo MODs. We compare the original LSP .lsbank file with its ZIP-compressed version, as well as the ZIP-compressed version generated using LSP with the -adpcm option.
+
+<img src="./png/lsbank_adpcm.png" width="80%" />
+
 ## LSP is production ready!
 
 LSP is already used in plenty of Amiga (and Atari :)) productions. Some are listed here:
@@ -76,18 +88,25 @@ This command will produce three files:
 
 ```c
 LSPConvert options:
-        -v : verbose
+        -micro : Produce larger but highly compressible .lsmusic file (need micro replayer)
+        -adpcm : Produce highly compressible (greater than x2) .lsbank file (using ADPCM encoding)
+        -lossless <x> : In case of -adpcm mode, do not ADPCM pack specific MOD instrument number x
         -insane : Generate insane mode fast replayer source code
         -getpos : Enable LSP_MusicGetPos function use
         -setpos : Enable LSP_MusicSetPos function use
-        -micro : Produce larger but highly compressible .lsmusic file (need micro replayer)
         -shrink: shrink any non used sample data if possible
         -nosampleoptim : preserve original .MOD soundbank layout (nice for AmigaKlang)
         -amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)
+        -mono : generate MONO wav with -amigapreview option
         -looppreview : generate longer wav preview if you want to test MOD looping
         -pack : display Amiga Schrinkler packing estimation size (.lsmusic file only)
         -fixed50hz : Makes 50hz player compatible even with other BPM than 125! (no CIA required)
         -nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)
+        -lsbank <filename> : Set a specific name for .lsbank file
+        -lsmusic <filename> : Set a specific name for .lsmusic file
+        -wav <filename> : Set a specific name for -amigapreview WAV file
+        -insanefile <filename> : Set a specific name for -insane mode generated source code
+        -v : verbose
 ```
 
 ### macOS/Linux versions

@@ -6,6 +6,15 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.30 (2026/05/03)
+	- new "-adpcm" option. ADPCM compress the .lsbank file. The bank keep the same file size (so you don't change anything in your workflow) but compress two times better. Saves tons of space in your exe or your trackloaded demo!
+	- new "-lossless <x>" option. Do *not* ADPCM compress MOD sample #x in -adpcm mode. ( to keep best quality for some touchy instruments )
+	- new "-mono" to output mono WAV with "-amigapreview" command.
+	- new "-lsbank" option to set a specific filename for .lsbank file
+	- new "-lsmusic" option to set a specific filename for .lsmusic file
+	- new "-insanefile" option to set a specific filename for -insane mode fast generated player source code
+	- new "-wav" option to set a specific WAV filename for -amigapreview option
+
 v1.27
 	- added very new -fixed50hz option. In this mode, you can still use a 50hz VBL tick even if the song is not using 125 BPM. (basically you don't need CIA replayer anymore). In general you won't notice any difference, but some very small note jittering could happen depending on the music or BPM values. Feel free to use this nice option if it fits your needs.
 	- more robust unsupported fx messages ( ie SetFilter )

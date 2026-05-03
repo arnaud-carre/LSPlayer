@@ -57,6 +57,9 @@
     <ClCompile Include="external\micromod\micromod.cpp">
       <Filter>Source Files\external\micromod</Filter>
     </ClCompile>
+    <ClCompile Include="adpcm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\micromod\micromod.h">
@@ -144,6 +147,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WavWriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="adpcm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

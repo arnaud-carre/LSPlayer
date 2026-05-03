@@ -50,7 +50,7 @@ WavWriter::~WavWriter()
 		Close();
 }
 
-bool	WavWriter::Open(const char* sFilename, int samplingRate, int channelCount /* = 2 */)
+bool	WavWriter::Open(const char* sFilename, int samplingRate, int channelCount /* = 2 */, int sampleBitDepth /*= 16 */)
 {
 	bool ret = false;
 	m_h = fopen(sFilename, "wb");
@@ -60,6 +60,7 @@ bool	WavWriter::Open(const char* sFilename, int samplingRate, int channelCount /
 		fwrite(&dummy, sizeof(WAVHeader), 1, m_h);
 		m_samplingRate = samplingRate;
 		m_channelCount = channelCount;
+		m_sampleBitDepth = sampleBitDepth;
 		m_sampleCount = 0;
 		ret = true;
 	}
@@ -72,10 +73,21 @@ bool	WavWriter::Open(const char* sFilename, int samplingRate, int channelCount /
 
 void	WavWriter::AddAudioData(const s16* data, int sampleCount)
 {
+	assert(16 == m_sampleBitDepth);
 	if (m_h)
 	{
-		const int rawSize = sizeof(s16) * sampleCount * m_channelCount;
 		fwrite(data, sizeof(s16)*m_channelCount, sampleCount, m_h);
+		m_sampleCount += sampleCount;
+	}
+}
+
+void	WavWriter::AddAudioData(const s8* data, int sampleCount)
+{
+	assert(8 == m_sampleBitDepth);
+	if (m_h)
+	{
+		for (int i = 0; i < sampleCount; i++)
+			fputc(data[i] ^ 0x80, m_h);
 		m_sampleCount += sampleCount;
 	}
 }
@@ -94,7 +106,7 @@ void	WavWriter::Close()
 		head.SampleFormat = 1;
 		head.NumChannels = m_channelCount;
 		head.PlayRate = m_samplingRate;
-		head.BitsPerSample = 16;
+		head.BitsPerSample = m_sampleBitDepth;
 		head.Stride = (head.BitsPerSample / 8) * head.NumChannels;
 		head.BytesPerSec = head.PlayRate * head.Stride;
 		head.DataLength = m_sampleCount * head.Stride;

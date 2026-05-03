@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.26
+;	Light Speed Player v1.30
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -40,7 +40,7 @@ LSP_MusicInit:
 			lea		LSP_State(pc),a3
 			move.l	a2,m_dmaconPatch(a3)
 			move.w	#$8000,-1(a2)			; Be sure DMACon word is $8000 (note: a2 should be ODD address)
-			cmpi.w	#$010b,(a0)+			; this play routine supports v1.11 as minimal version of LPConvert.exe
+			cmpi.w	#(1<<8)|(30),(a0)+			; this play routine supports v1.30 as minimal version of LPConvert.exe
 			blt		.dataError
 			movea.l	a0,a4					; relocation flag ad
 			addq.w	#2,a0					; skip relocation flag
@@ -49,12 +49,44 @@ LSP_MusicInit:
 			move.w	(a0)+,m_escCodeSetBpm(a3)
 			move.w	(a0)+,m_escCodeGetPos(a3)
 			move.l	(a0)+,-(a7)				; music len in frame ticks
-			move.w	(a0)+,d0				; instrument count
+
+		; ADPCM decoding
+			move.l	a1,-(a7)
+			btst	#2,1(a4)		; -adpcm option?
+			beq.s	.reloc
+			move.l	(a0)+,d2		; dpcm offset		
+			move.l	(a0)+,d4		; lossless mask
+			lea		4(a1,d2.l),a2
+			addq.w	#4,a1
+			lea		.dpcmTable(pc),a5
+.dpcmLoop:	move.w	(a0)+,d2		; word count-1
+			beq.s	.reloc			; end
+			tst.b	(a4)			; already depacked/relocated?
+			bne.s	.dpcmLoop
+			add.l	d4,d4			; ADPCM packed or not
+			bcs.s	.copy
+			moveq	#0,d6			; current sample
+			moveq	#0,d0
+.dLoop:		move.b	(a2)+,d0
+			moveq	#15,d3
+			and.w	d0,d3
+			lsr.w	#4,d0
+			add.b	0(a5,d0.w),d6
+			move.b	d6,(a1)+
+			add.b	0(a5,d3.w),d6
+			move.b	d6,(a1)+
+			dbf		d2,.dLoop
+			bra.s	.dpcmLoop
+.copy:		move.b	(a2)+,(a1)+
+			move.b	(a2)+,(a1)+
+			dbf		d2,.copy
+			bra.s	.dpcmLoop
+
+.reloc:		move.w	(a0)+,d0				; instrument count
 			lea		-12(a0),a2				; LSP data has -12 offset on instrument tab ( to win 2 cycles in insane player :) )
 			move.l	a2,m_lspInstruments(a3)	; instrument tab addr ( minus 4 )
 			subq.w	#1,d0
-			move.l	a1,d1
-			movea.l	a0,a1					; keep relocated flag
+			move.l	(a7)+,d1
 .relocLoop:	tst.b	(a4)					; relocation guard
 			bne.s	.relocated
 			add.l	d1,(a0)
@@ -100,6 +132,8 @@ LSP_MusicInit:
 			rts
 
 .dataError:	illegal
+.dpcmTable:
+			dc.b	0,1,2,4,8,16,32,64,-128,-64,-32,-16,-8,-4,-2,-1
 
 ;------------------------------------------------------------------
 ;

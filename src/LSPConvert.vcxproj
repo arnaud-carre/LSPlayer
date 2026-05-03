@@ -148,6 +148,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="adpcm.cpp" />
     <ClCompile Include="crc32.cpp" />
     <ClCompile Include="external\micromod\micromod.cpp" />
     <ClCompile Include="LSPConvert.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="WavWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="adpcm.h" />
     <ClInclude Include="crc32.h" />
     <ClInclude Include="external\micromod\micromod.h" />
     <ClInclude Include="external\Shrinkler\AmigaWords.h" />

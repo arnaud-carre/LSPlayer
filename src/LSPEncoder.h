@@ -17,6 +17,8 @@
 #include "ValueEncoder.h"
 #include "MemoryStream.h"
 
+#define		D_MICROMOD_DEBUG				0
+
 static	const	int		MOD_CHANNEL_COUNT = 4;
 static	const	int		AMIGA_PERIOD_BITS = 12;
 static	const	int		AMIGA_PER_MIN = 14;
@@ -27,28 +29,16 @@ static const int		LSP_CMDWORD_MAX = 255 * 3;
 
 #ifndef LSP_MAJOR_VERSION
 static	const	int		LSP_MAJOR_VERSION = 1;
-static	const	int		LSP_MINOR_VERSION = 27;
+static	const	int		LSP_MINOR_VERSION = 30;
 #endif
 
 static const int kMicroModeStreamCount = 16;
 
 struct ConvertParams
 {
-	void	Reset()
+	ConvertParams()
 	{
-		m_generateInsane = false;
-		m_keepModSoundBankLayout = false;
-		m_verbose = false;
-		m_renderWav = false;
-		m_nosettempo = false;
-		m_amigaEmulation = false;
-		m_loopPreview = false;
-		m_lspMicro = false;
-		m_packEstimate = false;
-		m_seqGetPosSupport = false;
-		m_seqSetPosSupport = false;
-		m_shrink = false;
-		m_fixed50hz = false;
+		memset(this, 0, sizeof(ConvertParams));
 	}
 
 	bool	ParseArgs(int argc, char* argv[]);
@@ -57,7 +47,10 @@ struct ConvertParams
 	char		m_sBankFilename[_MAX_PATH];
 	char		m_sScoreFilename[_MAX_PATH];
 	char		m_sPlayerFilename[_MAX_PATH];
+	#if D_MICROMOD_DEBUG
 	char		m_sWavFilename[_MAX_PATH];
+	bool		m_renderWav;
+	#endif
 	char		m_sAmigaWavFilename[_MAX_PATH];
 
 	void		SetNameWithExtension(const char* src, char* dst, const char* sExt, const char* sNamePostfix);
@@ -65,7 +58,6 @@ struct ConvertParams
 	bool		m_generateInsane;
 	bool		m_keepModSoundBankLayout;
 	bool		m_verbose;
-	bool		m_renderWav;
 	bool		m_nosettempo;
 	bool		m_amigaEmulation;
 	bool		m_loopPreview;
@@ -75,6 +67,9 @@ struct ConvertParams
 	bool		m_seqGetPosSupport;
 	bool		m_seqSetPosSupport;
 	bool		m_shrink;
+	bool 		m_adpcm;
+	bool m_mono;
+	uint32_t m_losslessMask;
 
 };
 
@@ -166,10 +161,12 @@ private:
 	void	AddLSPInstrument(int id, int modInstrument, int sampleOffset);
 
 	int		ComputeLSPMusicSize(int dataStreamSize) const;
+	int 	ComputeAdpcmInfoSize() const;
 	void	ComputeAndFixSampleOffsets();
 	void	GenLabel(int word, char* out);
 	int		VoiceCodeCompute(int frameDmaCon, int frameResetMask, int frameInstMask) const;
 	int		FrameToSeq(int frame) const;
+	uint32_t GetBankDepackInPlaceOffset(uint32_t* total) const;
 
 
 	int		m_ModFileSize;

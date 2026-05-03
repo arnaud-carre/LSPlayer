@@ -27,6 +27,7 @@ public:
 	const void*	GetBuffer() { return m_data; }
 	int			GetPos() const { return m_pos; }
 	int			GetLen() const { return m_dataLen; }
+	void*		GetWriteBuffer() { return m_data; }
 
 	u8		ru8();
 	u16		ru16();
@@ -53,7 +54,7 @@ class LSPDecoder
 public:
 	LSPDecoder();
 
-	bool	LoadAndRender(const char* sMusicName, const char* sBankName, const char* sOutputWavFile, bool verbose, bool loopPreview);
+	bool	LoadAndRender(const char* sMusicName, const char* sBankName, const char* sOutputWavFile, bool verbose, bool loopPreview, bool mono);
 
 
 private:

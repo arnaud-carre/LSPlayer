@@ -18,6 +18,7 @@
 #include "crc32.h"
 #include "external/micromod/micromod.h"
 #include "WavWriter.h"
+#include "adpcm.h"
 #ifdef MACOS_LINUX
 #include <string>
 #include <filesystem>
@@ -59,7 +60,6 @@ void	ConvertParams::SetNameWithExtension(const char* src, char* dst, const char*
 LSPEncoder::LSPEncoder()
 {
 	memset(this, 0, sizeof(LSPEncoder));
-	m_convertParams.Reset();
 	m_channelMaskFilter = 0xf;
 	m_EscValueGetPos = -1;
 	m_EscValueRewind = -1;
@@ -183,6 +183,7 @@ bool	LSPEncoder::LoadModule()
 			crc = CrcUpdate(crc, (const unsigned char*)version, sizeof(version));
 			crc = CrcUpdate(crc, (const unsigned char*)&m_convertParams.m_keepModSoundBankLayout, sizeof(m_convertParams.m_keepModSoundBankLayout));
 			crc = CrcUpdate(crc, (const unsigned char*)&m_convertParams.m_lspMicro, sizeof(m_convertParams.m_lspMicro));
+			crc = CrcUpdate(crc, (const unsigned char*)&m_convertParams.m_adpcm, sizeof(m_convertParams.m_adpcm));
 			m_uniqueId = crc;
 
 			m_MODScoreSize = micromod_calculate_score_len((signed char*)m_ModBuffer);
@@ -208,12 +209,13 @@ bool	LSPEncoder::LoadModule()
 
 				if (0 == micromod_initialise((signed char*)m_ModBuffer, HOST_REPLAY_RATE))
 				{
+					#if D_MICROMOD_DEBUG
 					if (m_convertParams.m_renderWav)
 					{
 						micromodOutput.Open(m_convertParams.m_sWavFilename, HOST_REPLAY_RATE, 2);
 						printf("Rendering into %s...\n", m_convertParams.m_sWavFilename);
 					}
-
+					#endif
 					m_totalSampleCount = 0;
 					m_frameCount = 0;
 					m_seqPosFrame[0] = 0;
@@ -232,9 +234,10 @@ bool	LSPEncoder::LoadModule()
 						// run the mixer to get the exact amount of each instrument used
 						s16* buffer = tmpBuffer.GetAudioBuffer(tick_len);
 						simulateMixing(buffer, tick_len);
+						#if D_MICROMOD_DEBUG
 						if (m_convertParams.m_renderWav)
 							micromodOutput.AddAudioData(buffer, tick_len);
-
+						#endif
 						if (m_frameCount >= m_frameMax)
 						{
 							printf("Fatal ERROR: Music end detection issue (song is more than %d ticks)\n", m_frameMax);
@@ -371,9 +374,10 @@ bool	LSPEncoder::LoadModule()
 
 					m_modDurationSec = (m_totalSampleCount+ HOST_REPLAY_RATE-1) / HOST_REPLAY_RATE;
 
+					#if D_MICROMOD_DEBUG
 					if (m_convertParams.m_renderWav)
 						micromodOutput.Close();
-
+					#endif
 					// stats
 					for (int i = 1; i <= 31; i++)
 					{
@@ -714,6 +718,23 @@ static int	ComputeCodesTableSize(int codesCount)
 	return h * 256 + l + 1;
 }
 
+int LSPEncoder::ComputeAdpcmInfoSize() const
+{
+	int addSize = 0;
+	if (m_convertParams.m_adpcm)
+	{
+		addSize += 4;		// depackInPlace offset
+		addSize += 4;		// lossless bitmask
+		for (int i = 0; i < 31; i++)
+		{
+			if (m_modInstrumentUsedMask & (1 << i))
+				addSize += 2;
+		}
+		addSize += 2;		// end "0" marker
+	}
+	return addSize;
+}
+
 int		LSPEncoder::ComputeLSPMusicSize(int dataStreamSize) const
 {
 	int size = 4;	// LSP1 or LSPm
@@ -727,6 +748,7 @@ int		LSPEncoder::ComputeLSPMusicSize(int dataStreamSize) const
 	size += 2;		// esc code for getpos
 	size += 4;		// tick count
 	size += 2;		// LSP instrument count
+	size += ComputeAdpcmInfoSize();
 	size += m_lspIntrumentEncoder.GetCodesCount() * 12;
 	size += 2;		// codes count value
 	size += ComputeCodesTableSize(m_cmdEncoder.GetCodesCount()) * 2;
@@ -1142,7 +1164,7 @@ bool	LSPEncoder::ExportToLSP()
 	if (m_convertParams.m_amigaEmulation)
 	{
 		LSPDecoder decoder;
-		decoder.LoadAndRender(m_convertParams.m_sScoreFilename, m_convertParams.m_sBankFilename, m_convertParams.m_sAmigaWavFilename, m_convertParams.m_verbose, m_convertParams.m_loopPreview);
+		decoder.LoadAndRender(m_convertParams.m_sScoreFilename, m_convertParams.m_sBankFilename, m_convertParams.m_sAmigaWavFilename, m_convertParams.m_verbose, m_convertParams.m_loopPreview, m_convertParams.m_mono);
 	}
 
 	if (m_convertParams.m_packEstimate)
@@ -1161,6 +1183,26 @@ bool	LSPEncoder::ExportToLSP()
 	return ret;
 }
 
+uint32_t LSPEncoder::GetBankDepackInPlaceOffset(uint32_t* total) const
+{
+	assert(!m_convertParams.m_keepModSoundBankLayout);
+	uint32_t packedSize = 0;
+	uint32_t totalSize = 0;
+	for (int i = 0; i < 31; i++)
+	{
+		if (m_modInstrumentUsedMask & (1 << i))
+		{
+			totalSize += m_lspSamples[i].len;
+			if ( m_convertParams.m_losslessMask & (1<<i))
+				packedSize += m_lspSamples[i].len;
+			else
+				packedSize += m_lspSamples[i].len>>1;
+		}
+	}
+	*total = totalSize;
+	return totalSize - packedSize;
+}
+
 bool	LSPEncoder::ExportBank(const char* sfilename)
 {
 	bool ret = false;
@@ -1168,6 +1210,7 @@ bool	LSPEncoder::ExportBank(const char* sfilename)
 
 	if (0 == fopen_s(&h, sfilename, "wb"))
 	{
+		printf("Writing LSBANK file \"%s\"...\n", sfilename);
 		w32(h, m_uniqueId);
 		if (m_convertParams.m_keepModSoundBankLayout)
 		{
@@ -1176,12 +1219,45 @@ bool	LSPEncoder::ExportBank(const char* sfilename)
 		}
 		else
 		{
-			for (int i = 0; i < 31; i++)
+			if (m_convertParams.m_adpcm)
 			{
-				if (m_modInstrumentUsedMask & (1 << i))
+				uint32_t bankSize = 0;
+				uint32_t inplaceOffset = GetBankDepackInPlaceOffset(&bankSize);
+				assert(0 == (bankSize&1));
+				uint8_t* buffer = (uint8_t *)malloc(bankSize);
+				memset(buffer, 0, bankSize);
+				uint8_t* pw = buffer + inplaceOffset;
+				for (int i = 0; i < 31; i++)
 				{
-					const LspSample& info = m_lspSamples[i];
-					fwrite(info.sampleData, 1, info.len, h);
+					if (m_modInstrumentUsedMask & (1 << i))
+					{
+						const LspSample& info = m_lspSamples[i];
+						assert(0 == (info.len&1));
+						if (m_convertParams.m_losslessMask & (1 << i))
+						{
+							printf("Info: Do not ADPCM compress .MOD instrument #%d\n", i + 1);
+							memcpy(pw, info.sampleData, info.len);
+							pw += info.len;
+						}
+						else
+						{
+							dpcmEncode(info.sampleData, info.len, pw);
+							pw += info.len / 2;
+						}
+					}
+				}
+				fwrite(buffer, 1, bankSize, h);
+				free(buffer);
+			}
+			else
+			{
+				for (int i = 0; i < 31; i++)
+				{
+					if (m_modInstrumentUsedMask & (1 << i))
+					{
+						const LspSample& info = m_lspSamples[i];
+						fwrite(info.sampleData, 1, info.len, h);
+					}
 				}
 			}
 		}
@@ -1197,6 +1273,8 @@ bool	LSPEncoder::ExportScore(const ConvertParams& params, MemoryStream* streams,
 	FILE* h;
 	if (0 == fopen_s(&h, params.m_sScoreFilename, "wb"))
 	{
+		printf("Writing LSMUSIC file \"%s\"...\n", params.m_sScoreFilename);
+
 		if ( microMode)
 			w32(h, 'LSPm');
 		else
@@ -1212,6 +1290,8 @@ bool	LSPEncoder::ExportScore(const ConvertParams& params, MemoryStream* streams,
 			int code = 0;
 			code |= int(m_convertParams.m_seqGetPosSupport & 1)<<0;
 			code |= int(m_convertParams.m_seqSetPosSupport & 1)<<1;
+			if ( params.m_adpcm )
+				code |= 1 << 2;
 
 			w16(h, code);				// relocation byte & seq timing flags
 			w16(h, m_bpm);
@@ -1222,6 +1302,33 @@ bool	LSPEncoder::ExportScore(const ConvertParams& params, MemoryStream* streams,
 		}
 		else
 			w16(h, m_bpm);
+
+		// ADPCM info
+		if (params.m_adpcm)
+		{
+			uint32_t bankSize = 0;
+			uint32_t inplaceOffset = GetBankDepackInPlaceOffset(&bankSize);
+			w32(h, inplaceOffset);		// offset for ADPCM nibbles
+			uint32_t losslessMask = 0;
+			int bit = 31;
+			for (int i = 0; i < 31; i++)
+			{
+				if (m_modInstrumentUsedMask & (1 << i))
+				{
+					if (m_convertParams.m_losslessMask & (1 << i))
+						losslessMask |= (1 << bit);
+					bit--;
+				}
+			}
+			w32(h, losslessMask);
+
+			for (int i = 0; i < 31; i++)
+			{
+				if (m_modInstrumentUsedMask & (1 << i))
+					w16(h, (m_lspSamples[i].len / 2)-1);	// nibble count, -1 for DBF
+			}
+			w16(h, 0);		// end marker
+		}
 
 		const int instrumentCount = m_lspIntrumentEncoder.GetCodesCount();
 		w16(h, u16(instrumentCount));
@@ -1593,6 +1700,9 @@ static void	emitLea(FILE* h, int offset, int rs, int rd, const char* comment)
 	}
 }
 
+// generated with the help of https://binaryconvert.dev/string-escape :) 
+static const char*	sAdpcmDepack = "\t\t\ttst.b\t(a5)\t\t\t; already depacked/relocated?\n\t\t\tbne.s\t.skipAdpcm\n\t\t\tbtst\t#2,1(a5)\n\t\t\tbeq.s\t.skipAdpcm\n\n\t\t\tmovem.l\ta0-a2,-(a7)\n\t\t\t\n\t\t; ADPCM decoding\n\t\t\tlea\t\t16(a0),a0\n\t\t\tmove.l\t(a0)+,d2\t\t; dpcm offset\t\t\n\t\t\tmove.l\t(a0)+,d4\t\t; lossless mask\n\t\t\tlea\t\t4(a1,d2.l),a2\n\t\t\taddq.w\t#4,a1\n\t\t\tlea\t\t.dpcmTable(pc),a4\n.dpcmLoop:\tmove.w\t(a0)+,d2\t\t; word count-1\n\t\t\tbeq.s\t.endDepack\t\t; end\n\t\t\tadd.l\td4,d4\t\t\t; ADPCM packed or not\n\t\t\tbcs.s\t.copy\n\t\t\tmoveq\t#0,d6\t\t\t; current sample\n\t\t\tmoveq\t#0,d0\n.dLoop:\t\tmove.b\t(a2)+,d0\n\t\t\tmoveq\t#15,d3\n\t\t\tand.w\td0,d3\n\t\t\tlsr.w\t#4,d0\n\t\t\tadd.b\t0(a4,d0.w),d6\n\t\t\tmove.b\td6,(a1)+\n\t\t\tadd.b\t0(a4,d3.w),d6\n\t\t\tmove.b\td6,(a1)+\n\t\t\tdbf\t\td2,.dLoop\n\t\t\tbra.s\t.dpcmLoop\n.copy:\t\tmove.b\t(a2)+,(a1)+\n\t\t\tmove.b\t(a2)+,(a1)+\n\t\t\tdbf\t\td2,.copy\n\t\t\tbra.s\t.dpcmLoop\n.endDepack:\n\t\t\tmovem.l\t(a7)+,a0-a2\n.skipAdpcm:\t\t\t\n";
+
 bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 {
 	const ConvertParams& params = m_convertParams;
@@ -1643,6 +1753,9 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 		const int skip = ComputeLSPMusicSize(0) - 8;	// already read 8 bytes ( LSP1 + unique id )
 
 		fprintf_s(h, "\t\t\tlea\t\t2(a0),a5\t\t; relocation byte\n");
+
+		fprintf_s(h, sAdpcmDepack);
+
 		fprintf_s(h, "\t\t\tlea\t\t%d(a0),a0\t\t; skip header\n", skip);
 
 		fprintf_s(h,
@@ -1685,7 +1798,8 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		fprintf_s(h, "\t\t\trts\n\n");
 
-		fprintf_s(h,".dataError:\tillegal\n\n");
+		fprintf_s(h,".dataError:\tillegal\n");
+		fprintf_s(h, ".dpcmTable:\tdc.b\t0,1,2,4,8,16,32,64,-128,-64,-32,-16,-8,-4,-2,-1\n\n");
 
 		fprintf_s(h, "LSP_MusicGetPos:\n");
 		if ( params.m_seqGetPosSupport )
@@ -1737,8 +1851,6 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 		}
 
 		fprintf_s(h, "\n");
-
-
 
 		const int hc = m_cmdEncoder.GetCodesCount() / 255;
 

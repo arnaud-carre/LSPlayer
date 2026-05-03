@@ -15,7 +15,7 @@
 #include "LSPTypes.h"
 
 static	const int	kPaulaPosPrec = 15;
-static const int	kAmigaChipRamSize = 2*512*1024;
+static const int	kAmigaChipRamSize = 2*1024*1024;
 static const int	kPaulaClock = 3546895;
 
 class Paula

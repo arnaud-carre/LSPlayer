@@ -1,2 +1,2 @@
-..\LSPConvert rink-a-dink.mod -amigapreview -insane -shrink -getpos
+..\LSPConvert rink-a-dink.mod -amigapreview -shrink -getpos -mono -insane
 pause

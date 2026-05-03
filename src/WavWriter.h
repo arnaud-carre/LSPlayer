@@ -38,8 +38,9 @@ public:
 	WavWriter();
 	~WavWriter();
 
-	bool	Open(const char* sFilename, int samplingRate, int channelCount = 2);
+	bool	Open(const char* sFilename, int samplingRate, int channelCount = 2, int sampleBitDepth = 16);
 	void	AddAudioData(const s16* data, int sampleCount);
+	void	AddAudioData(const s8* data, int sampleCount);
 	void	Close();
 
 private:
@@ -48,6 +49,7 @@ private:
 	int		m_sampleCount;
 	int		m_channelCount;
 	int		m_samplingRate;
+	int m_sampleBitDepth;
 
 	struct WAVHeader
 	{

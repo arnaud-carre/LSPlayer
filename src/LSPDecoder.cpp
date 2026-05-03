@@ -15,9 +15,11 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <assert.h>
+#include <stdint.h>
 #include "LSPDecoder.h"
 #include "WavWriter.h"
 #include "Paula.h"
+#include "adpcm.h"
 
 
 BinaryParser::BinaryParser()
@@ -143,14 +145,26 @@ static const int	BpmToSampleCount(int bpm)
 	return (HOST_REPLAY_RATE * 5) / (bpm * 2);
 }
 
-bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, const char* sOutputWavFile, bool verbose, bool loopPreview)
+static void StereoToMono(int16_t* buffer, int len)
+{
+	const int16_t* pr = (const int16_t *)buffer;
+	int16_t* pw = (int16_t *)buffer;
+	for (int i = 0; i < len; i++)
+	{
+		*pw++ = int16_t((int(pr[0]) + int(pr[1])) >> 1);
+		pr += 2;
+	}
+}
+
+bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, const char* sOutputWavFile, bool verbose, bool loopPreview, bool mono)
 {
 
 	BinaryParser musicFile;
 	BinaryParser bankFile;
 
 	WavWriter paulaOutput;
-	paulaOutput.Open(sOutputWavFile, HOST_REPLAY_RATE, 2);
+	printf("Generating WAV file \"%s\"...\n", sOutputWavFile);
+	paulaOutput.Open(sOutputWavFile, HOST_REPLAY_RATE, mono ? 1 : 2);
 
 	Paula paulaChip(HOST_REPLAY_RATE);
 
@@ -189,10 +203,11 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 				u16 version = musicFile.ru16();		// major/minor version
 				printf("Version: $%04x\n", version);
 
+				u16 flags = 0;
 				u16 bpm = 125;
 				if (!microMode)
 				{
-					musicFile.ru16();		// skip relocating flag
+					flags = musicFile.ru16();		// skip relocating flag
 					bpm = musicFile.ru16();
 					m_escCodeRewind = musicFile.ru16();
 					m_escCodeSetBpm = musicFile.ru16();
@@ -208,6 +223,36 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 
 				if (!microMode)
 					m_frameCount = musicFile.ru32();
+
+				// depack ADPCM
+				if (flags & (1 << 2))
+				{
+					int8_t* pw = (int8_t*)bankFile.GetWriteBuffer();
+					pw += 4;		// skip lsbank signature
+					uint32_t inplaceOffset = musicFile.ru32();
+					const uint8_t* pr = (const uint8_t*)pw + inplaceOffset;
+					uint32_t losslessMask = musicFile.ru32();
+					for (;;)
+					{
+						int len = musicFile.ru16();
+						if (0 == len)
+							break;
+						len += 1;		// stored len, in ADPCM bytes, -1 to please DBF instruction
+						if (losslessMask&(1 << 31))
+						{
+							memcpy(pw, pr, len * 2);
+							pr += len * 2;
+						}
+						else
+						{
+							dpcmDecode(pr, len, pw);
+							pr += len;
+						}
+						pw += len * 2;
+						losslessMask <<= 1;
+					}
+					paulaChip.UploadChipMemoryBank(bankFile.GetBuffer(), bankFile.GetLen(), 0);		// upload at ad 0
+				}
 
 				m_instrumentCount = musicFile.ru16();
 				printf("LSP Instruments: %d\n", m_instrumentCount);
@@ -468,6 +513,8 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 					// now we can render a complete paula frame
 					s16* buffer = tmpBuffer.GetAudioBuffer(frameSampleCount);
 					paulaChip.AudioStreamRender(buffer, frameSampleCount);
+					if ( mono )
+						StereoToMono(buffer, frameSampleCount);
 					paulaOutput.AddAudioData(buffer, frameSampleCount);
 					frame++;
 
