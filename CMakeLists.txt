@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project("LSPConvert" VERSION 1.25)
+project("LSPConvert" VERSION 1.30)
 
 set(SourceFiles
     src/LSPConvert.cpp
@@ -24,6 +24,8 @@ set(SourceFiles
     src/WavWriter.h
     src/crc32.cpp
     src/crc32.h
+    src/adpcm.cpp
+    src/adpcm.h
     src/external/micromod/micromod.cpp
     src/external/micromod/micromod.h
     src/external/Shrinkler/AmigaWords.h

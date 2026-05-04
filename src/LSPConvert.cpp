@@ -11,6 +11,9 @@
 #include "LSPEncoder.h"
 #include "LSPDecoder.h"
 #include "external/micromod/micromod.h"
+#ifdef MACOS_LINUX
+#include "WindowsCompat.h"
+#endif
 
 LSPEncoder gLSPEncoder;
 
