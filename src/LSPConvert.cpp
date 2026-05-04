@@ -257,6 +257,9 @@ int main(int argc, char* argv[])
 	printf("Light Speed Player Converter v%d.%02d\n", LSP_MAJOR_VERSION, LSP_MINOR_VERSION);
 	printf("Fastest & Smallest 68k MOD music player ever!\n");
 	printf("Written by Leonard/Oxygene (@leonard_coder)\n");
+#ifdef MACOS_LINUX
+	printf("macOS/Linux compatibility added by Rich/Defekt (@asimilon)\n");
+#endif
 	printf("https://github.com/arnaud-carre/LSPlayer\n\n");
 
 	return Process(argc, argv);

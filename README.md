@@ -113,8 +113,8 @@ LSPConvert options:
 
 Find the relevant binaries in `builds`.
 
-macOS has been built at version 1.25 as Intel/Apple Silicon verified working on Sonoma.
-Linux has been built at version 1.25 verified working on Ubuntu 22.04 LTS.
+macOS has been built at version 1.30 as Intel/Apple Silicon verified working on Sequoia/Tahoe.
+Linux has been built at version 1.30 verified working on Ubuntu 22.04 LTS.
 
 ## Compiling LSPConvert yourself
 
@@ -161,4 +161,5 @@ You can test the Amiga bootable image floppy disk "benchmark.adf" to see how dif
 ## Credits
 
 * LSP converter, format & player by Arnaud Carré (aka Leonard/Oxygene : [@leonard_coder](https://twitter.com/leonard_coder) )
+* macOS/Linux compatibility added by Rich Elmes (aka Rich/Defekt) : [@asimilon](https://bsky.app/profile/asimilon.net)
 * LSPConvert uses "micromod" library by Martin Cameron to load & analyze the .mod file
