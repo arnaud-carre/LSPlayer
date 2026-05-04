@@ -45,7 +45,7 @@ LSP Micro | 224 | 2340 | **2564**
 
 *Note: You can use "-pack" command line option to display an estimate of the .lsmusic Shrinkler compressed size*
 
-## ADPCM compression to reduce Disk layout
+## ADPCM compression to reduce Disk footprint
 
 LSP now supports optional basic ADPCM (more precisely, DPCM) sample compression, enabled via the -adpcm command-line option. In this mode, the .lsbank file remains the same size as before, but compresses to more than twice its size when using standard LZ-based algorithms (such as ZIP). This significantly reduces the footprint of your final executable or floppy image.
 
