@@ -240,7 +240,7 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 						len += 1;		// stored len, in ADPCM bytes, -1 to please DBF instruction
 						if (losslessMask&(1 << 31))
 						{
-							memcpy(pw, pr, len * 2);
+							memmove(pw, pr, len * 2);
 							pr += len * 2;
 						}
 						else
