@@ -713,9 +713,8 @@ static	void	StoreIntoCmdStream(MemoryStream& stream, int value)
 
 static int	ComputeCodesTableSize(int codesCount)
 {
-	int h = codesCount / 255;
-	int l = codesCount % 255;
-	return h * 256 + l + 1;
+	const int seg255 = (codesCount + 254) / 255;	// # of segments of 255 entries
+	return codesCount + seg255;		// add 1 dummy "0" code (ESC code) per segment of 255
 }
 
 int LSPEncoder::ComputeAdpcmInfoSize() const
@@ -1316,7 +1315,7 @@ bool	LSPEncoder::ExportScore(const ConvertParams& params, MemoryStream* streams,
 				if (m_modInstrumentUsedMask & (1 << i))
 				{
 					if (m_convertParams.m_losslessMask & (1 << i))
-						losslessMask |= (1 << bit);
+						losslessMask |= (1u << bit);
 					bit--;
 				}
 			}

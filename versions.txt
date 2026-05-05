@@ -6,6 +6,10 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.31 (2026/05/05)
+	- fix rare potential bug when music has exact multiple of 255 LSP commands
+	- micromod library update
+	
 v1.30 (2026/05/03)
 	- new "-adpcm" option. ADPCM compress the .lsbank file. The bank keep the same file size (so you don't change anything in your workflow) but compress two times better. Saves tons of space in your exe or your trackloaded demo!
 	- new "-lossless <x>" option. Do *not* ADPCM compress MOD sample #x in -adpcm mode. ( to keep best quality for some touchy instruments )
