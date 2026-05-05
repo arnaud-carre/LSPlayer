@@ -11,6 +11,7 @@
 #ifdef MACOS_LINUX
 
 #define fprintf_s fprintf
+#define strncpy_s strncpy
 
 int fopen_s(FILE** h, const char* fname, const char* mode);
 
