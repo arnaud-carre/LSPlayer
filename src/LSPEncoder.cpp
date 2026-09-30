@@ -1481,7 +1481,7 @@ bool	LSPEncoder::ExportReplayCode(FILE* h)
 	const int codes_count = m_cmdEncoder.GetCodesCount();
 
 
-	fprintf_s(h, "; %d specific callback\n", codes_count - 1);
+	fprintf(h, "; %d specific callback\n", codes_count - 1);
 
 	FetchInfo fetchInfo[4];
 
@@ -1537,7 +1537,7 @@ bool	LSPEncoder::ExportReplayCode(FILE* h)
 
 		char sLabel[128];
 		GenLabel(word, sLabel);
-		fprintf_s(h, ".r_%s:\n", sLabel);
+		fprintf(h, ".r_%s:\n", sLabel);
 
 		const bool dpcA4 = ((resetCount <= 2) && (0 == instrCount));
 
@@ -1546,34 +1546,34 @@ bool	LSPEncoder::ExportReplayCode(FILE* h)
 		{
 			if (word&(1 << v))
 			{
-				fprintf_s(h, "\t\tmove.b\t(a0)+,$%02x(a6)\n", (v-4) * 16 + 9);
+				fprintf(h, "\t\tmove.b\t(a0)+,$%02x(a6)\n", (v-4) * 16 + 9);
 			}
 		}
 
-		fprintf_s(h, "\t\tmove.l\ta0,(a1)+\n");
+		fprintf(h, "\t\tmove.l\ta0,(a1)+\n");
 
 
 		const bool needWordStream = (instrCount > 0) || (word & 0xf);	// if instr or periods, need word stream
 
 		if (dmaCount > 0)
 		{
-			fprintf_s(h, "\t\tmove.l\t(a1)+,a0\n");
-			fprintf_s(h, "\t\tmoveq\t#$%02x,d0\n", dmaCon);
-			fprintf_s(h, "\t\tmove.w\td0,$96-$a0(a6)\n");
-			fprintf_s(h, "\t\tmove.b\td0,(a0)\n");
+			fprintf(h, "\t\tmove.l\t(a1)+,a0\n");
+			fprintf(h, "\t\tmoveq\t#$%02x,d0\n", dmaCon);
+			fprintf(h, "\t\tmove.w\td0,$96-$a0(a6)\n");
+			fprintf(h, "\t\tmove.b\td0,(a0)\n");
 		}
 		else if (needWordStream)
 		{
-			fprintf_s(h, "\t\taddq.w\t#4,a1\n");
+			fprintf(h, "\t\taddq.w\t#4,a1\n");
 		}
 
 		if ( needWordStream)
-			fprintf_s(h, "\t\tmove.l\t(a1),a0\n");
+			fprintf(h, "\t\tmove.l\t(a1),a0\n");
 
 		for (int v = 3; v >= 0; v--)
 		{
 			if ( word & (1<<v))
-				fprintf_s(h, "\t\tmove.w\t(a0)+,$%02x(a6)\n", v * 16 + 6);
+				fprintf(h, "\t\tmove.w\t(a0)+,$%02x(a6)\n", v * 16 + 6);
 		}
 
 
@@ -1583,13 +1583,13 @@ bool	LSPEncoder::ExportReplayCode(FILE* h)
 			if (!dpcA4)
 			{
 				if (currentOffset > 0)
-					fprintf_s(h, "\t\tlea\t\t.resetv+%d(pc),a4\n", currentOffset);
+					fprintf(h, "\t\tlea\t\t.resetv+%d(pc),a4\n", currentOffset);
 				else
-					fprintf_s(h, "\t\tlea\t\t.resetv(pc),a4\n");
+					fprintf(h, "\t\tlea\t\t.resetv(pc),a4\n");
 			}
 
 			if ( instrCount > 0)
-				fprintf_s(h, "\t\tmovea.l\ta1,a2\n");
+				fprintf(h, "\t\tmovea.l\ta1,a2\n");
 
 			for (int i = 0; i < fetchCount; i++)
 			{
@@ -1645,9 +1645,9 @@ bool	LSPEncoder::ExportReplayCode(FILE* h)
 		}
 
 		if (needWordStream)
-			fprintf_s(h, "\t\tmove.l\ta0,(a1)\n");
+			fprintf(h, "\t\tmove.l\ta0,(a1)\n");
 
-		fprintf_s(h, "\t\trts\n\n");
+		fprintf(h, "\t\trts\n\n");
 	}
 
 	return true;
@@ -1663,18 +1663,18 @@ static void	emitLea(FILE* h, int offset, int rs, int rd, const char* comment)
 	if ( offset != 0 )
 	{
 		if ((offset >= -32768) && (offset <= 32767))
-			fprintf_s(h, "\t\t\tlea\t\t%d(a%d),a%d", offset, rs, rd);
+			fprintf(h, "\t\t\tlea\t\t%d(a%d),a%d", offset, rs, rd);
 		else
 		{
 			if ( rs != rd )
-				fprintf_s(h, "\t\t\tmovea.l\ta%d,a%d\n", rs, rd);
-			fprintf_s(h, "\t\t\tadd.l\t#%d,a%d", offset, rd);
+				fprintf(h, "\t\t\tmovea.l\ta%d,a%d\n", rs, rd);
+			fprintf(h, "\t\t\tadd.l\t#%d,a%d", offset, rd);
 		}
 
 		if ( comment )
-			fprintf_s(h, "\t; %s", comment);
+			fprintf(h, "\t; %s", comment);
 
-		fprintf_s(h, "\n");
+		fprintf(h, "\n");
 	}
 }
 
@@ -1685,8 +1685,8 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 {
 	const ConvertParams& params = m_convertParams;
 
-	fprintf_s(h, ";*****************************************************************\n");
-	fprintf_s(h,";\n"
+	fprintf(h, ";*****************************************************************\n");
+	fprintf(h,";\n"
 		";\tLight Speed Player v%d.%02d\n"
 		";\tFastest Amiga MOD player ever :)\n"
 		";\tWritten By Arnaud Carré (aka Leonard / OXYGENE)\n"
@@ -1702,23 +1702,23 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		const int lspInstrumentCount = m_lspIntrumentEncoder.GetCodesCount();
 
-		fprintf_s(h, ";\t*WARNING* This generated source code specific to \"%s\" LSP file\n",params.m_sScoreFilename);
+		fprintf(h, ";\t*WARNING* This generated source code specific to \"%s\" LSP file\n",params.m_sScoreFilename);
 
-		fprintf_s(h, ";\n");
-		fprintf_s(h, ";\t--------How to use--------- \n");
-		fprintf_s(h, ";\n");
-		fprintf_s(h, ";\tbsr LSP_MusicInitInsane : Init LSP player code & music\n");
-		fprintf_s(h, ";\t\ta0: LSP music data(any memory)\n");
-		fprintf_s(h, ";\t\ta1: LSP sound bank(chip memory)\n");
-		fprintf_s(h, ";\t\ta2: DMACON 8bits low byte address (odd)\n");
-		fprintf_s(h, ";\n");
-		fprintf_s(h, ";\tbsr LSP_MusicPlayTickInsane : LSP player tick (call once per frame)\n");
-		fprintf_s(h, ";\t\ta6: should be $dff0a0 (and not $dff000)\n");
-		fprintf_s(h, ";\t\tUsed regs: d0/a0/a1/a2/a3/a4\n");
-		fprintf_s(h, ";\n");
-		fprintf_s(h, ";*****************************************************************\n");
+		fprintf(h, ";\n");
+		fprintf(h, ";\t--------How to use--------- \n");
+		fprintf(h, ";\n");
+		fprintf(h, ";\tbsr LSP_MusicInitInsane : Init LSP player code & music\n");
+		fprintf(h, ";\t\ta0: LSP music data(any memory)\n");
+		fprintf(h, ";\t\ta1: LSP sound bank(chip memory)\n");
+		fprintf(h, ";\t\ta2: DMACON 8bits low byte address (odd)\n");
+		fprintf(h, ";\n");
+		fprintf(h, ";\tbsr LSP_MusicPlayTickInsane : LSP player tick (call once per frame)\n");
+		fprintf(h, ";\t\ta6: should be $dff0a0 (and not $dff000)\n");
+		fprintf(h, ";\t\tUsed regs: d0/a0/a1/a2/a3/a4\n");
+		fprintf(h, ";\n");
+		fprintf(h, ";*****************************************************************\n");
 
-		fprintf_s(h, "\n"
+		fprintf(h, "\n"
 			"LSP_MusicInitInsane:\n"
 			"\t\t\tmove.l\t#$%08x,d0\n"
 			"\t\t\tcmp.l\t(a1),d0\n"
@@ -1730,40 +1730,40 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		const int skip = ComputeLSPMusicSize(0) - 8;	// already read 8 bytes ( LSP1 + unique id )
 
-		fprintf_s(h, "\t\t\tlea\t\t2(a0),a5\t\t; relocation byte\n");
+		fprintf(h, "\t\t\tlea\t\t2(a0),a5\t\t; relocation byte\n");
 
-		fprintf_s(h, sAdpcmDepack);
+		fprintf(h, sAdpcmDepack);
 
-		fprintf_s(h, "\t\t\tlea\t\t%d(a0),a0\t\t; skip header\n", skip);
+		fprintf(h, "\t\t\tlea\t\t%d(a0),a0\t\t; skip header\n", skip);
 
-		fprintf_s(h,
+		fprintf(h,
 			"\t\t\tlea\t\tLSP_StateInsane(pc),a3\n"
 			"\t\t\tmove.l\ta2,12(a3)\n"
 			"\t\t\tmove.l\ta0,16(a3)\t\t; word stream ptr\n");
 
 		emitLea(h, wordStreamSize, 0, 4, nullptr);
-		fprintf_s(h, "\t\t\tmove.l\ta4,8(a3)\t\t; byte stream ptr\n\n");
+		fprintf(h, "\t\t\tmove.l\ta4,8(a3)\t\t; byte stream ptr\n\n");
 
 		emitLea(h, m_wordStreamLoopPos, 0, 0, "word stream loop pos");
-		fprintf_s(h, "\t\t\tmove.l\ta0,(a3)\t; word stream loop ptr\n");
+		fprintf(h, "\t\t\tmove.l\ta0,(a3)\t; word stream loop ptr\n");
 
 		emitLea(h, m_byteStreamLoopPos, 4, 4, "byte stream loop pos");
-		fprintf_s(h, "\t\t\tmove.l\ta4,24(a3)\t; byte stream loop ptr\n");
+		fprintf(h, "\t\t\tmove.l\ta4,24(a3)\t; byte stream loop ptr\n");
 
 
 
-		fprintf_s(h,
+		fprintf(h,
 			"\t\t\ttst.b\t(a5)\n"
 			"\t\t\tbne.s\t.noReloc\n"
 			"\t\t\tst\t\t(a5)\n");
 
 		if (lspInstrumentCount < 128)
-			fprintf_s(h, "\t\t\tmoveq\t#%d-1,d0\n", lspInstrumentCount);
+			fprintf(h, "\t\t\tmoveq\t#%d-1,d0\n", lspInstrumentCount);
 		else
-			fprintf_s(h, "\t\t\tmove.w\t#%d-1,d0\n", lspInstrumentCount);
+			fprintf(h, "\t\t\tmove.w\t#%d-1,d0\n", lspInstrumentCount);
 
 
-		fprintf_s(h, "\t\t\tlea\t\tLSP_InstrumentInfoInsane(pc),a0\n"
+		fprintf(h, "\t\t\tlea\t\tLSP_InstrumentInfoInsane(pc),a0\n"
 			"\t\t\tmove.l\ta1,d1\n"
 			".rloop:\t\tadd.l\td1,(a0)\n"
 			"\t\t\tadd.l\td1,6(a0)\n"
@@ -1771,26 +1771,26 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 			"\t\t\tdbf\t\td0,.rloop\n"
 			".noReloc:\tbset.b\t#1,$bfe001\t; disable this fucking Low pass filter!!\n");
 
-		fprintf_s(h, "\t\t\tlea\t\tLSP_StateInsane+6(pc),a0\n");
-		fprintf_s(h, "\t\t\tmove.w\t#%d,(a0)\t\t; music BPM\n", m_bpm);
+		fprintf(h, "\t\t\tlea\t\tLSP_StateInsane+6(pc),a0\n");
+		fprintf(h, "\t\t\tmove.w\t#%d,(a0)\t\t; music BPM\n", m_bpm);
 
-		fprintf_s(h, "\t\t\trts\n\n");
+		fprintf(h, "\t\t\trts\n\n");
 
-		fprintf_s(h,".dataError:\tillegal\n");
-		fprintf_s(h, ".dpcmTable:\tdc.b\t0,1,2,4,8,16,32,64,-128,-64,-32,-16,-8,-4,-2,-1\n\n");
+		fprintf(h,".dataError:\tillegal\n");
+		fprintf(h, ".dpcmTable:\tdc.b\t0,1,2,4,8,16,32,64,-128,-64,-32,-16,-8,-4,-2,-1\n\n");
 
-		fprintf_s(h, "LSP_MusicGetPos:\n");
+		fprintf(h, "LSP_MusicGetPos:\n");
 		if ( params.m_seqGetPosSupport )
-			fprintf_s(h, "\t\t\tmove.w\tLSP_CurrentPos(pc),d0\n");
+			fprintf(h, "\t\t\tmove.w\tLSP_CurrentPos(pc),d0\n");
 		else
-			fprintf_s(h, "\t\t\tmoveq\t#0,d0\t\t; (music have been generated without \"-getpos\" support)\n");
-		fprintf_s(h, "\t\t\trts\n\n");
+			fprintf(h, "\t\t\tmoveq\t#0,d0\t\t; (music have been generated without \"-getpos\" support)\n");
+		fprintf(h, "\t\t\trts\n\n");
 
 		if (params.m_seqGetPosSupport)
-			fprintf_s(h, "LSP_CurrentPos:\t\tdc.w\t0\n");
+			fprintf(h, "LSP_CurrentPos:\t\tdc.w\t0\n");
 
 		// gen LSPVars
-		fprintf_s(h,
+		fprintf(h,
 			"LSP_StateInsane:\tdc.l\t0\t\t\t; 0  word stream loop\n"
 			"\t\t\t\t\tdc.w\t0\t\t\t; 4  reloc has been done\n"
 			"\t\t\t\t\tdc.w\t0\t\t\t; 6  current music BPM\n"
@@ -1803,7 +1803,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		fprintf(h, "; WARNING: in word stream, instrument offset is shifted by -12 bytes (3 last long of LSP_StateInsane)\n");
 
-		fprintf_s(h, "LSP_InstrumentInfoInsane:\t\t\t; (%d instruments)\n", lspInstrumentCount);
+		fprintf(h, "LSP_InstrumentInfoInsane:\t\t\t; (%d instruments)\n", lspInstrumentCount);
 
 		// gen sampleInfo
 		for (int i = 0; i < lspInstrumentCount; i++)
@@ -1819,7 +1819,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 			assert(lspLen >= 2);
 			assert(lspLen <= 0xffff * 2);
 
-			fprintf_s(h, "\t\t\tdc.w\t$%04x,$%04x,$%04x,$%04x,$%04x,$%04x\n",
+			fprintf(h, "\t\t\tdc.w\t$%04x,$%04x,$%04x,$%04x,$%04x,$%04x\n",
 				startAd >> 16,
 				startAd & 0xffff,
 				lspLen / 2,
@@ -1828,45 +1828,45 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 				info.repLen / 2);
 		}
 
-		fprintf_s(h, "\n");
+		fprintf(h, "\n");
 
 		const int hc = m_cmdEncoder.GetCodesCount() / 255;
 
-		fprintf_s(h, "LSP_MusicPlayTickInsane:\n");
-		fprintf_s(h, "\t\t\tlea\t\tLSP_StateInsane+8(pc),a1\n");
-		fprintf_s(h, "\t\t\tmove.l\t(a1),a0\t\t; byte stream\n");
-		fprintf_s(h, ".process:\tmoveq\t#0,d0\n");
-		fprintf_s(h, "\t\t\tmove.b\t(a0)+,d0\n");
+		fprintf(h, "LSP_MusicPlayTickInsane:\n");
+		fprintf(h, "\t\t\tlea\t\tLSP_StateInsane+8(pc),a1\n");
+		fprintf(h, "\t\t\tmove.l\t(a1),a0\t\t; byte stream\n");
+		fprintf(h, ".process:\tmoveq\t#0,d0\n");
+		fprintf(h, "\t\t\tmove.b\t(a0)+,d0\n");
 		if ( hc>0 )
-			fprintf_s(h, "\t\t\tbeq.s\t.extended1\n");
-		fprintf_s(h, "\t\t\tadd.w\td0,d0\n");
-		fprintf_s(h, "\t\t\tmove.w\t.LSP_JmpTable(pc,d0.w),d0\t; 14 cycles\n");
-		fprintf_s(h, "\t\t\tjmp\t\t.LSP_JmpTable(pc,d0.w)\t\t; 14 cycles\n");
-		fprintf_s(h, "\n");
+			fprintf(h, "\t\t\tbeq.s\t.extended1\n");
+		fprintf(h, "\t\t\tadd.w\td0,d0\n");
+		fprintf(h, "\t\t\tmove.w\t.LSP_JmpTable(pc,d0.w),d0\t; 14 cycles\n");
+		fprintf(h, "\t\t\tjmp\t\t.LSP_JmpTable(pc,d0.w)\t\t; 14 cycles\n");
+		fprintf(h, "\n");
 
 		if (hc>0)
 		{
-			fprintf_s(h, ".extended1:\tmove.w\t#$0100,d0\n");
-			fprintf_s(h, "\t\t\tmove.b\t(a0)+,d0\n");
+			fprintf(h, ".extended1:\tmove.w\t#$0100,d0\n");
+			fprintf(h, "\t\t\tmove.b\t(a0)+,d0\n");
 			if (hc > 1)
-				fprintf_s(h, "\t\t\tbeq.s\t.extended2\n");
-			fprintf_s(h, "\t\t\tadd.w\td0,d0\n");
-			fprintf_s(h, "\t\t\tmove.w\t.LSP_JmpTable(pc,d0.w),d0\n");
-			fprintf_s(h, "\t\t\tjmp\t\t.LSP_JmpTable(pc,d0.w)\n");
-			fprintf_s(h, "\n");
+				fprintf(h, "\t\t\tbeq.s\t.extended2\n");
+			fprintf(h, "\t\t\tadd.w\td0,d0\n");
+			fprintf(h, "\t\t\tmove.w\t.LSP_JmpTable(pc,d0.w),d0\n");
+			fprintf(h, "\t\t\tjmp\t\t.LSP_JmpTable(pc,d0.w)\n");
+			fprintf(h, "\n");
 		}
 
 		if (hc > 1)
 		{
-			fprintf_s(h, ".extended2:\tmove.w\t#$0200,d0\n");
-			fprintf_s(h, "\t\t\tmove.b\t(a0)+,d0\n");
-			fprintf_s(h, "\t\t\tadd.w\td0,d0\n");
-			fprintf_s(h, "\t\t\tmove.w\t.LSP_JmpTable(pc,d0.w),d0\n");
-			fprintf_s(h, "\t\t\tjmp\t\t.LSP_JmpTable(pc,d0.w)\n");
-			fprintf_s(h, "\n");
+			fprintf(h, ".extended2:\tmove.w\t#$0200,d0\n");
+			fprintf(h, "\t\t\tmove.b\t(a0)+,d0\n");
+			fprintf(h, "\t\t\tadd.w\td0,d0\n");
+			fprintf(h, "\t\t\tmove.w\t.LSP_JmpTable(pc,d0.w),d0\n");
+			fprintf(h, "\t\t\tjmp\t\t.LSP_JmpTable(pc,d0.w)\n");
+			fprintf(h, "\n");
 		}
 
-		fprintf_s(h,
+		fprintf(h,
 			".r_rewind:\tmove.l\t0-8(a1),16-8(a1)\n"
 			"\t\t\tmove.l\t24-8(a1),a0\n"
 			"\t\t\tbra.s\t.process\n\n");
@@ -1874,31 +1874,31 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		if (params.m_seqGetPosSupport)
 		{
-			fprintf_s(h,".r_getpos:\tmove.b\t(a0)+,-9(a1)\t; patch LSP_CurrentPos low byte\n"
+			fprintf(h,".r_getpos:\tmove.b\t(a0)+,-9(a1)\t; patch LSP_CurrentPos low byte\n"
 			          	"\t\t\tbra.s\t.process\n\n");
 		}
 
 		if (m_setBpmCount > 1)
 		{
-			fprintf_s(h,
+			fprintf(h,
 				".r_setBPM:\tmove.b\t(a0)+,-1(a1)\t; patch BPM byte\n"
 				"\t\t\tbra.s\t.process\n\n");
 		}
 
-		fprintf_s(h, ".resetv:\tdc.l\t0,0,0,0\n");
+		fprintf(h, ".resetv:\tdc.l\t0,0,0,0\n");
 
 
 		const int codes_count = m_cmdEncoder.GetCodesCount();
-		fprintf_s(h, "\n.LSP_JmpTable:\t\t; (%d codes)\n", codes_count);
+		fprintf(h, "\n.LSP_JmpTable:\t\t; (%d codes)\n", codes_count);
 		for (int i = 0; i < codes_count; i++)
 		{
 			if (0 == (i % 255))
 			{
-				fprintf_s(h, "\t\t\tdc.w\t-1\t\t; extended code\n");
+				fprintf(h, "\t\t\tdc.w\t-1\t\t; extended code\n");
 			}
 			if (m_cmdEncoder.IsDummyCodeEntry(i))
 			{
-				fprintf_s(h, "\t\t\tdc.w\t$0000\t\t; dummy code\n");
+				fprintf(h, "\t\t\tdc.w\t$0000\t\t; dummy code\n");
 			}
 			else
 			{
@@ -1910,7 +1910,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 				{
 					if (m_setBpmCount <= 1)
 					{
-						fprintf_s(h, "\t\t\tdc.w\t$0000\t\t; SetBpm code (not used in this music)\n");
+						fprintf(h, "\t\t\tdc.w\t$0000\t\t; SetBpm code (not used in this music)\n");
 						genLabel = false;
 					}
 				}
@@ -1918,7 +1918,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 				{
 					if (!params.m_seqGetPosSupport)
 					{
-						fprintf_s(h, "\t\t\tdc.w\t$0000\t\t; no GetPos (not supported in insane player)\n");
+						fprintf(h, "\t\t\tdc.w\t$0000\t\t; no GetPos (not supported in insane player)\n");
 						genLabel = false;
 					}
 				}
@@ -1926,11 +1926,11 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 				if ( genLabel )
 				{
 					GenLabel(word, sLabel);
-					fprintf_s(h, "\t\t\tdc.w\t.r_%s-.LSP_JmpTable\n", sLabel);
+					fprintf(h, "\t\t\tdc.w\t.r_%s-.LSP_JmpTable\n", sLabel);
 				}
 			}
 		}
-		fprintf_s(h, "\n");
+		fprintf(h, "\n");
 
 	return true;
 }
