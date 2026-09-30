@@ -1,6 +1,6 @@
 ;*****************************************************************
 ;
-;	Light Speed Player v1.30
+;	Light Speed Player v1.31
 ;	Fastest Amiga MOD player ever :)
 ;	Written By Arnaud Carré (aka Leonard / OXYGENE)
 ;	https://github.com/arnaud-carre/LSPlayer
@@ -26,7 +26,7 @@
 ;*****************************************************************
 
 LSP_MusicInitInsane:
-			move.l	#$487361fe,d0
+			move.l	#$ee046a4a,d0
 			cmp.l	(a1),d0
 			bne.s	.dataError
 			cmpi.l	#'LSP1',(a0)+

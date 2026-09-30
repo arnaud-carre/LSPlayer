@@ -1,75 +1,54 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 
-project("LSPConvert" VERSION 1.25)
+project(LSPConvert LANGUAGES CXX)
 
-set(SourceFiles
-    src/LSPConvert.cpp
-    src/LSPDecoder.cpp
-    src/LSPDecoder.h
-    src/LSPEncoder.cpp
-    src/LSPEncoder.h
-    src/LSPTypes.h
+if(CMAKE_CONFIGURATION_TYPES)
+	set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "Build configurations" FORCE)
+else()
+	if(NOT CMAKE_BUILD_TYPE)
+		set(CMAKE_BUILD_TYPE Release CACHE STRING "Build configuration" FORCE)
+	endif()
+	set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release)
+	if(NOT CMAKE_BUILD_TYPE MATCHES "^(Debug|Release)$")
+		message(FATAL_ERROR "CMAKE_BUILD_TYPE must be Debug or Release")
+	endif()
+endif()
 
-    src/WindowsCompat.cpp
-    src/WindowsCompat.h
-
-    src/MemoryStream.cpp
-    src/MemoryStream.h
-    src/PackingEstimate.cpp
-    src/Paula.cpp
-    src/Paula.h
-    src/ValueEncoder.cpp
-    src/ValueEncoder.h
-    src/WavWriter.cpp
-    src/WavWriter.h
-    src/crc32.cpp
-    src/crc32.h
-    src/external/micromod/micromod.cpp
-    src/external/micromod/micromod.h
-    src/external/Shrinkler/AmigaWords.h
-    src/external/Shrinkler/assert.h
-    src/external/Shrinkler/Coder.h
-    src/external/Shrinkler/CountingCoder.h
-    src/external/Shrinkler/CuckooHash.h
-    src/external/Shrinkler/DataFile.h
-    src/external/Shrinkler/Decoder.h
-    src/external/Shrinkler/DecrunchHeaders.h
-    src/external/Shrinkler/doshunks.h
-    src/external/Shrinkler/Heap.h
-    src/external/Shrinkler/HunkFile.h
-    src/external/Shrinkler/LZDecoder.h
-    src/external/Shrinkler/LZEncoder.h
-    src/external/Shrinkler/LZParser.h
-    src/external/Shrinkler/MatchFinder.h
-    src/external/Shrinkler/Pack.h
-    src/external/Shrinkler/RangeCoder.h
-    src/external/Shrinkler/RangeDecoder.h
-    src/external/Shrinkler/SizeMeasuringCoder.h
-    src/external/Shrinkler/SuffixArray.h
+# Include the converter, portability helpers, and vendored implementation.
+file(GLOB_RECURSE LSPCONVERT_SOURCES CONFIGURE_DEPENDS
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
 
-add_executable(${PROJECT_NAME} ${SourceFiles})
+add_executable(LSPConvert ${LSPCONVERT_SOURCES})
+target_compile_features(LSPConvert PRIVATE cxx_std_17)
+set_target_properties(LSPConvert PROPERTIES CXX_EXTENSIONS OFF)
+target_include_directories(LSPConvert PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-
-set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
-
-if(UNIX)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        _MAX_PATH=260
-        _MAX_DRIVE=3
-        _MAX_DIR=256
-        _MAX_FNAME=256
-        _MAX_EXT=256
-        WINDOWS=0
-        MACOS_LINUX=1
-        LSP_MAJOR_VERSION=${PROJECT_VERSION_MAJOR}
-        LSP_MINOR_VERSION=${PROJECT_VERSION_MINOR}
-    )
-else()
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        WINDOWS=1
-        LSP_MAJOR_VERSION=${PROJECT_VERSION_MAJOR}
-        LSP_MINOR_VERSION=${PROJECT_VERSION_MINOR}
-    )
+if(MSVC)
+	# /MT in Release and /MTd in Debug: no Visual C++ runtime DLL dependency.
+	set_property(TARGET LSPConvert PROPERTY
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+	target_compile_definitions(LSPConvert PRIVATE _CONSOLE)
+elseif(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	target_compile_definitions(LSPConvert PRIVATE MACOS_LINUX)
 endif()
+
+# Keep all generated executables inside the build directory.
+set_target_properties(LSPConvert PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/$<CONFIG>"
+)
+
+install(TARGETS LSPConvert RUNTIME DESTINATION .)
+
+set(CPACK_GENERATOR ZIP)
+set(CPACK_PACKAGE_NAME LSPConvert)
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY OFF)
+if(WIN32)
+	set(CPACK_PACKAGE_FILE_NAME LSPConvert-win)
+elseif(APPLE)
+	set(CPACK_PACKAGE_FILE_NAME LSPConvert-mac)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	set(CPACK_PACKAGE_FILE_NAME LSPConvert-ubuntu)
+endif()
+include(CPack)
