@@ -163,7 +163,7 @@ private:
 	int		ComputeLSPMusicSize(int dataStreamSize) const;
 	int 	ComputeAdpcmInfoSize() const;
 	void	ComputeAndFixSampleOffsets();
-	void	GenLabel(int word, char* out);
+	void	GenLabel(int word, char* out, size_t size);
 	int		VoiceCodeCompute(int frameDmaCon, int frameResetMask, int frameInstMask) const;
 	int		FrameToSeq(int frame) const;
 	uint32_t GetBankDepackInPlaceOffset(uint32_t* total) const;

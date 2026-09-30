@@ -2,7 +2,7 @@
 
 	LSP (Light Speed Player) Converter
 	Fastest & Tiniest 68k MOD player ever!
-	Written by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
+	Written by Arnaud CarrÃ© aka Leonard/Oxygene (@leonard_coder)
 	https://github.com/arnaud-carre/LSPlayer
 
 *********************************************************************/
@@ -1427,7 +1427,7 @@ bool	LSPEncoder::ExportScore(const ConvertParams& params, MemoryStream* streams,
 	return ret;
 }
 
-void	LSPEncoder::GenLabel(int word, char* out)
+void	LSPEncoder::GenLabel(int word, char* out, size_t size)
 {
 	// b2: period
 	// b1: volume
@@ -1435,14 +1435,14 @@ void	LSPEncoder::GenLabel(int word, char* out)
 	if (word)
 	{
 		if (m_EscValueRewind == word)
-			sprintf(out, "rewind");
+			snprintf(out, size, "rewind");
 		else if (m_EscValueGetPos == word)
-			sprintf(out, "getpos");
+			snprintf(out, size, "getpos");
 		else
 		{
 			if (m_EscValueSetBpm == word)
 			{
-				sprintf(out, "setBPM");
+				snprintf(out, size, "setBPM");
 			}
 			else
 			{
@@ -1537,7 +1537,7 @@ bool	LSPEncoder::ExportReplayCode(FILE* h)
 		}
 
 		char sLabel[128];
-		GenLabel(word, sLabel);
+		GenLabel(word, sLabel, sizeof(sLabel));
 		fprintf(h, ".r_%s:\n", sLabel);
 
 		const bool dpcA4 = ((resetCount <= 2) && (0 == instrCount));
@@ -1690,7 +1690,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 	fprintf(h,";\n"
 		";\tLight Speed Player v%d.%02d\n"
 		";\tFastest Amiga MOD player ever :)\n"
-		";\tWritten By Arnaud Carré (aka Leonard / OXYGENE)\n"
+		";\tWritten By Arnaud CarrÃ© (aka Leonard / OXYGENE)\n"
 		";\thttps://github.com/arnaud-carre/LSPlayer\n"
 		";\ttwitter: @leonard_coder\n"
 		";\n"
@@ -1926,7 +1926,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 				if ( genLabel )
 				{
-					GenLabel(word, sLabel);
+					GenLabel(word, sLabel, sizeof(sLabel));
 					fprintf(h, "\t\t\tdc.w\t.r_%s-.LSP_JmpTable\n", sLabel);
 				}
 			}
