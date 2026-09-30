@@ -29,7 +29,7 @@ static const int		LSP_CMDWORD_MAX = 255 * 3;
 
 #ifndef LSP_MAJOR_VERSION
 static	const	int		LSP_MAJOR_VERSION = 1;
-static	const	int		LSP_MINOR_VERSION = 31;
+static	const	int		LSP_MINOR_VERSION = 33;
 #endif
 
 static const int kMicroModeStreamCount = 16;
