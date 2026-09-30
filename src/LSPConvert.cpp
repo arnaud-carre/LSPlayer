@@ -2,7 +2,7 @@
 
 	LSP (Light Speed Player) Converter
 	Fastest & Tiniest 68k MOD player ever!
-	Written by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
+	Written by Arnaud CarrÃ© aka Leonard/Oxygene (@leonard_coder)
 	https://github.com/arnaud-carre/LSPlayer
 
 *********************************************************************/
@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
 
 	printf("LSP (Light Speed Player) Converter %d.%02d\n", LSP_MAJOR_VERSION, LSP_MINOR_VERSION);
 	printf("Fastest & Smallest 68k MOD music player ever!\n");
-	printf("Written by Arnaud Carré aka Leonard/Oxygene\n");
+	printf("Written by Arnaud CarrÃ© aka Leonard/Oxygene\n");
 	printf("https://github.com/arnaud-carre/LSPlayer\n\n");
 
 	return Process(argc, argv);
