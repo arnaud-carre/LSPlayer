@@ -14,7 +14,7 @@ else()
 	endif()
 endif()
 
-# Include the converter, portability helpers, and vendored implementation.
+# Include the converter and vendored implementation.
 file(GLOB_RECURSE LSPCONVERT_SOURCES CONFIGURE_DEPENDS
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
@@ -30,8 +30,6 @@ if(MSVC)
 	set_property(TARGET LSPConvert PROPERTY
 		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 	target_compile_definitions(LSPConvert PRIVATE _CONSOLE)
-elseif(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
-	target_compile_definitions(LSPConvert PRIVATE MACOS_LINUX)
 endif()
 
 # Keep all generated executables inside the build directory.
