@@ -1466,7 +1466,7 @@ void	LSPEncoder::GenLabel(int word, char* out, size_t size)
 		}
 	}
 	else
-		sprintf(out, "None");
+		snprintf(out, size, "None");
 }
 
 struct FetchInfo
