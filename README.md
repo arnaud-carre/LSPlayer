@@ -1,4 +1,4 @@
-# Light Speed Player v1.31
+# Light Speed Player v1.32
 # The fastest & Smallest 68k MOD music player ever
 
 ## What is LSP?
@@ -99,7 +99,6 @@ LSPConvert options:
         -amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)
         -mono : generate MONO wav with -amigapreview option
         -looppreview : generate longer wav preview if you want to test MOD looping
-        -pack : display Amiga Schrinkler packing estimation size (.lsmusic file only)
         -fixed50hz : Makes 50hz player compatible even with other BPM than 125! (no CIA required)
         -nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)
         -lsbank <filename> : Set a specific name for .lsbank file
@@ -109,31 +108,13 @@ LSPConvert options:
         -v : verbose
 ```
 
-### macOS/Linux versions
+## macOS / Linux versions
 
-Find the relevant binaries in `builds`.
-
-macOS has been built at version 1.25 as Intel/Apple Silicon verified working on Sonoma.
-Linux has been built at version 1.25 verified working on Ubuntu 22.04 LTS.
+Now macOS ARM and Ubuntu LSPConvert are build and available as github Releases
 
 ## Compiling LSPConvert yourself
 
-If you're using windows system: download and install "Visual Studio 2022 Community", it's free and great. Open the src/LSPConvert.sln file project and profit!
-
-Alternatively you can use the CMake instructions below.
-
-### macOS/Linux
-
-Install the relevant development tools for your system (CMake + Xcode/CLion/Linux tools).
-
-Issue the following commands:
-
-```
-cmake -Bbuild
-cmake --build build --config Release
-```
-
-Find the compiled executable in `build/LSPConvert`.
+If you want to compile it yourself instead of using github Releases, just use cmake
 
 ## LSP Standard : LightSpeedPlayer.asm
 

@@ -16,11 +16,11 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdint.h>
+#include "LSPTypes.h"
 #include "LSPDecoder.h"
 #include "WavWriter.h"
 #include "Paula.h"
 #include "adpcm.h"
-
 
 BinaryParser::BinaryParser()
 {
@@ -184,13 +184,13 @@ bool	LSPDecoder::LoadAndRender(const char* sMusicName, const char* sBankName, co
 
 			u32 sign = musicFile.ru32();
 
-			if ((sign != 'LSP1') && (sign != 'LSPm'))
+			if ((sign != MAKE_FOURCC("LSP1")) && (sign != MAKE_FOURCC("LSPm")))
 			{
 				printf("ERROR: not a valid LSP music file\n");
 				return false;
 			}
 
-			const bool microMode = (sign == 'LSPm');
+			const bool microMode = (sign == MAKE_FOURCC("LSPm"));
 
 			u32 bnkMagic = bankFile.ru32();
 			u32 magic = bnkMagic;

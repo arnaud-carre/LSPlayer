@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.platform.name }} / ${{ matrix.configuration }}
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+        platform:
+          - name: Windows x64
+            runner: windows-2022
+            cmake_args: '-A x64'
+          - name: macOS ARM64
+            runner: macos-15
+            cmake_args: '-DCMAKE_OSX_ARCHITECTURES=arm64'
+          - name: Ubuntu x64
+            runner: ubuntu-24.04
+            cmake_args: ''
+    steps:
+      - uses: actions/checkout@v6
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} ${{ matrix.platform.cmake_args }}
+      - name: Compile
+        run: cmake --build build --config ${{ matrix.configuration }} --parallel

@@ -33,6 +33,7 @@ static	const	int		LSP_MINOR_VERSION = 31;
 #endif
 
 static const int kMicroModeStreamCount = 16;
+static const int kLSP_MAX_PATH = 1024;
 
 struct ConvertParams
 {
@@ -44,16 +45,16 @@ struct ConvertParams
 	bool	ParseArgs(int argc, char* argv[]);
 
 	const char*	m_modFilename;
-	char		m_sBankFilename[_MAX_PATH];
-	char		m_sScoreFilename[_MAX_PATH];
-	char		m_sPlayerFilename[_MAX_PATH];
+	char		m_sBankFilename[kLSP_MAX_PATH];
+	char		m_sScoreFilename[kLSP_MAX_PATH];
+	char		m_sPlayerFilename[kLSP_MAX_PATH];
 	#if D_MICROMOD_DEBUG
-	char		m_sWavFilename[_MAX_PATH];
+	char		m_sWavFilename[kLSP_MAX_PATH];
 	bool		m_renderWav;
 	#endif
-	char		m_sAmigaWavFilename[_MAX_PATH];
+	char		m_sAmigaWavFilename[kLSP_MAX_PATH];
 
-	void		SetNameWithExtension(const char* src, char* dst, const char* sExt, const char* sNamePostfix);
+	void SetNameWithExtension(char* dst, const char* src, const char* sPostfixAndExt);
 
 	bool		m_generateInsane;
 	bool		m_keepModSoundBankLayout;
@@ -63,7 +64,6 @@ struct ConvertParams
 	bool		m_loopPreview;
 	bool		m_lspMicro;
 	bool		m_fixed50hz;
-	bool		m_packEstimate;
 	bool		m_seqGetPosSupport;
 	bool		m_seqSetPosSupport;
 	bool		m_shrink;
@@ -163,7 +163,7 @@ private:
 	int		ComputeLSPMusicSize(int dataStreamSize) const;
 	int 	ComputeAdpcmInfoSize() const;
 	void	ComputeAndFixSampleOffsets();
-	void	GenLabel(int word, char* out);
+	void	GenLabel(int word, char* out, size_t size);
 	int		VoiceCodeCompute(int frameDmaCon, int frameResetMask, int frameInstMask) const;
 	int		FrameToSeq(int frame) const;
 	uint32_t GetBankDepackInPlaceOffset(uint32_t* total) const;

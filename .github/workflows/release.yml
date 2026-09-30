@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  push:
+    tags: ['*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Package ${{ matrix.platform.name }}
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: Windows x64
+            runner: windows-2022
+            cmake_args: '-A x64'
+            archive: LSPConvert-win
+          - name: macOS ARM64
+            runner: macos-15
+            cmake_args: '-DCMAKE_OSX_ARCHITECTURES=arm64'
+            archive: LSPConvert-mac
+          - name: Ubuntu x64
+            runner: ubuntu-24.04
+            cmake_args: ''
+            archive: LSPConvert-ubuntu
+    steps:
+      - uses: actions/checkout@v6
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release ${{ matrix.platform.cmake_args }}
+      - name: Compile
+        run: cmake --build build --config Release --parallel
+      - name: Create ZIP
+        working-directory: build
+        run: cpack -C Release -G ZIP
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform.archive }}
+          path: build/${{ matrix.platform.archive }}.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish release archives
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download ZIPs
+        uses: actions/download-artifact@v4
+        with:
+          pattern: LSPConvert-*
+          merge-multiple: true
+          path: release
+      - name: Create release and attach ZIPs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --verify-tag --title "$TAG" --generate-notes
+          fi
+          gh release upload "$TAG" release/*.zip --clobber

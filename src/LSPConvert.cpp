@@ -2,12 +2,17 @@
 
 	LSP (Light Speed Player) Converter
 	Fastest & Tiniest 68k MOD player ever!
-	Written by Arnaud Carr� aka Leonard/Oxygene (@leonard_coder)
+	Written by Arnaud Carré aka Leonard/Oxygene (@leonard_coder)
 	https://github.com/arnaud-carre/LSPlayer
 
 *********************************************************************/
+#define	_CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 #include "LSPEncoder.h"
 #include "LSPDecoder.h"
 #include "external/micromod/micromod.h"
@@ -68,10 +73,6 @@ bool	ConvertParams::ParseArgs(int argc, char* argv[])
 			{
 				m_loopPreview = true;
 			}
-			else if (0 == strcmp(argv[argId], "-pack"))
-			{
-				m_packEstimate = true;
-			}
 			else if (0 == strcmp(argv[argId], "-micro"))
 			{
 				m_lspMicro = true;
@@ -91,22 +92,22 @@ bool	ConvertParams::ParseArgs(int argc, char* argv[])
 			}
 			else if ((0 == strcmp(argv[argId], "-lsbank")) && (argId < argc-1))
 			{
-				strncpy_s(m_sBankFilename, argv[argId + 1], _MAX_PATH);
+				strcpy(m_sBankFilename, argv[argId + 1]);
 				argId++;
 			}
 			else if ((0 == strcmp(argv[argId], "-lsmusic")) && (argId < argc-1))
 			{
-				strncpy_s(m_sScoreFilename, argv[argId + 1], _MAX_PATH);
+				strcpy(m_sScoreFilename, argv[argId + 1]);
 				argId++;
 			}
 			else if ((0 == strcmp(argv[argId], "-insanefile")) && (argId < argc-1))
 			{
-				strncpy_s(m_sPlayerFilename, argv[argId + 1], _MAX_PATH);
+				strcpy(m_sPlayerFilename, argv[argId + 1]);
 				argId++;
 			}
 			else if ((0 == strcmp(argv[argId], "-wav")) && (argId < argc-1))
 			{
-				strncpy_s(m_sAmigaWavFilename, argv[argId + 1], _MAX_PATH);
+				strcpy(m_sAmigaWavFilename, argv[argId + 1]);
 				argId++;
 			}
 			else if ((0 == strcmp(argv[argId], "-lossless")) && (argId < argc-1))
@@ -144,15 +145,15 @@ bool	ConvertParams::ParseArgs(int argc, char* argv[])
 	if (1 == nameCount)
 	{
 		if ( 0 == m_sBankFilename[0] )
-			SetNameWithExtension(m_modFilename, m_sBankFilename, ".lsbank", NULL);
+			SetNameWithExtension(m_sBankFilename, m_modFilename, ".lsbank");
 		if ( 0 == m_sScoreFilename[0] )
-			SetNameWithExtension(m_modFilename, m_sScoreFilename, ".lsmusic", m_lspMicro ? "_micro" : nullptr);
+			SetNameWithExtension(m_sScoreFilename, m_modFilename, m_lspMicro ? "_micro.lsmusic" : ".lsmusic");
 		if ( 0 == m_sPlayerFilename[0] )
-			SetNameWithExtension(m_modFilename, m_sPlayerFilename, ".asm", "_insane");
+			SetNameWithExtension(m_sPlayerFilename, m_modFilename, "_insane.asm");
 		if ( 0 == m_sAmigaWavFilename[0] )
-			SetNameWithExtension(m_modFilename, m_sAmigaWavFilename, ".wav", "_amiga");
+			SetNameWithExtension(m_sAmigaWavFilename, m_modFilename, "_amiga.wav");
 		#if D_MICROMOD_DEBUG
-		SetNameWithExtension(m_modFilename, m_sWavFilename, ".wav", NULL);
+		SetNameWithExtension(m_sWavFilename, m_modFilename, ".wav");
 		#endif
 		ret = true;
 	}
@@ -219,7 +220,6 @@ void	Help()
 		"\t-amigapreview : generate a wav from LSP data (output simulated LSP Amiga player)\n"
 		"\t-mono : generate MONO wav with -amigapreview option\n"
 		"\t-looppreview : generate longer wav preview if you want to test MOD looping\n"
-		"\t-pack : display Amiga Schrinkler packing estimation size (.lsmusic file only)\n"
 		"\t-fixed50hz : Makes 50hz player compatible even with other BPM than 125! (no CIA required)\n"
 		"\t-nosettempo : remove $Fxx>$20 SetTempo support (for very old .mods compatiblity)\n"
 		"\t-lsbank <filename> : Set a specific name for .lsbank file\n"
@@ -251,9 +251,15 @@ int	Process(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-	printf("Light Speed Player Converter v%d.%02d\n", LSP_MAJOR_VERSION, LSP_MINOR_VERSION);
+#ifdef _WIN32
+    // Force the Windows console to interpret stdout as UTF-8 (Code Page 65001)
+	// not needed on Linux or MacOS (utf-8 console by default)
+    SetConsoleOutputCP(CP_UTF8);
+#endif
+
+	printf("LSP (Light Speed Player) Converter %d.%02d\n", LSP_MAJOR_VERSION, LSP_MINOR_VERSION);
 	printf("Fastest & Smallest 68k MOD music player ever!\n");
-	printf("Written by Leonard/Oxygene (@leonard_coder)\n");
+	printf("Written by Arnaud Carré aka Leonard/Oxygene\n");
 	printf("https://github.com/arnaud-carre/LSPlayer\n\n");
 
 	return Process(argc, argv);

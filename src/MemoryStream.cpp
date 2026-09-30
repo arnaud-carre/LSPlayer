@@ -7,14 +7,12 @@
 
 *********************************************************************/
 
+#define	_CRT_SECURE_NO_WARNINGS
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include "MemoryStream.h"
-#ifdef MACOS_LINUX
-#include "WindowsCompat.h"
-#endif
 
 MemoryStream::MemoryStream()
 {
@@ -52,8 +50,8 @@ void	MemoryStream::Add(const MemoryStream& stream)
 
 void	MemoryStream::DebugSave(const char* fname)
 {
-	FILE* h;
-	if (0 == fopen_s(&h, fname, "wb"))
+	FILE* h = fopen(fname, "wb");
+	if (h)
 	{
 		FileWrite(h);
 		fclose(h);

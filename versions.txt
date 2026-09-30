@@ -6,6 +6,10 @@ Written by Leonard/Oxygene ( twitter @leonard_coder )
 ---------------
 Version History
 ---------------
+v1.32 (2026/09/30)
+	- now windows, macOS and Ubuntu builds are automatically build and available in github Releases section
+	- removed "-pack" option to estimate compressability with shrinkler
+
 v1.31 (2026/05/05)
 	- fix rare potential bug when music has exact multiple of 255 LSP commands
 	- micromod library update
