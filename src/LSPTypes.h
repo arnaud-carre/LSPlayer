@@ -16,5 +16,7 @@ typedef signed char		s8;
 typedef signed short	s16;
 typedef signed int		s32;
 
+#define	MAKE_FOURCC(a)	(uint32_t(a[0])<<24)|(uint32_t(a[1])<<16)|(uint32_t(a[2])<<8)|(uint32_t(a[3])<<0)
+
 static const int HOST_REPLAY_RATE = 48000;
 

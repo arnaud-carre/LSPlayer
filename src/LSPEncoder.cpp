@@ -19,6 +19,7 @@
 #include "external/micromod/micromod.h"
 #include "WavWriter.h"
 #include "adpcm.h"
+#include "LSPTypes.h"
 
 static const	int kWordStreamId = 0;
 static const	int kByteStreamId = 1;
@@ -1254,9 +1255,9 @@ bool	LSPEncoder::ExportScore(const ConvertParams& params, MemoryStream* streams,
 		printf("Writing LSMUSIC file \"%s\"...\n", params.m_sScoreFilename);
 
 		if ( microMode)
-			w32(h, 'LSPm');
+			w32(h, MAKE_FOURCC("LSPm"));
 		else
-			w32(h, 'LSP1');
+			w32(h, MAKE_FOURCC("LSP1"));
 		if (!microMode)		// no uniqueid in micro mode
 			w32(h, m_uniqueId);
 		fputc(LSP_MAJOR_VERSION, h);
@@ -1732,7 +1733,7 @@ bool	LSPEncoder::ExportCodeHeader(FILE* h, int lspScoreSize, int wordStreamSize)
 
 		fprintf(h, "\t\t\tlea\t\t2(a0),a5\t\t; relocation byte\n");
 
-		fprintf(h, sAdpcmDepack);
+		fprintf(h, "%s", sAdpcmDepack);
 
 		fprintf(h, "\t\t\tlea\t\t%d(a0),a0\t\t; skip header\n", skip);
 
