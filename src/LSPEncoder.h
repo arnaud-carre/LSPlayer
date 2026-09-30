@@ -33,6 +33,7 @@ static	const	int		LSP_MINOR_VERSION = 31;
 #endif
 
 static const int kMicroModeStreamCount = 16;
+static const int kLSP_MAX_PATH = 1024;
 
 struct ConvertParams
 {
@@ -44,14 +45,14 @@ struct ConvertParams
 	bool	ParseArgs(int argc, char* argv[]);
 
 	const char*	m_modFilename;
-	char		m_sBankFilename[_MAX_PATH];
-	char		m_sScoreFilename[_MAX_PATH];
-	char		m_sPlayerFilename[_MAX_PATH];
+	char		m_sBankFilename[kLSP_MAX_PATH];
+	char		m_sScoreFilename[kLSP_MAX_PATH];
+	char		m_sPlayerFilename[kLSP_MAX_PATH];
 	#if D_MICROMOD_DEBUG
-	char		m_sWavFilename[_MAX_PATH];
+	char		m_sWavFilename[kLSP_MAX_PATH];
 	bool		m_renderWav;
 	#endif
-	char		m_sAmigaWavFilename[_MAX_PATH];
+	char		m_sAmigaWavFilename[kLSP_MAX_PATH];
 
 	void SetNameWithExtension(char* dst, const char* src, const char* sPostfixAndExt);
 

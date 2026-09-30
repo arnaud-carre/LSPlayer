@@ -6,6 +6,7 @@
 	https://github.com/arnaud-carre/LSPlayer
 
 *********************************************************************/
+#define	_CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #if defined(_WIN32)
@@ -91,22 +92,22 @@ bool	ConvertParams::ParseArgs(int argc, char* argv[])
 			}
 			else if ((0 == strcmp(argv[argId], "-lsbank")) && (argId < argc-1))
 			{
-				strncpy_s(m_sBankFilename, argv[argId + 1], _MAX_PATH);
+				strcpy(m_sBankFilename, argv[argId + 1]);
 				argId++;
 			}
 			else if ((0 == strcmp(argv[argId], "-lsmusic")) && (argId < argc-1))
 			{
-				strncpy_s(m_sScoreFilename, argv[argId + 1], _MAX_PATH);
+				strcpy(m_sScoreFilename, argv[argId + 1]);
 				argId++;
 			}
 			else if ((0 == strcmp(argv[argId], "-insanefile")) && (argId < argc-1))
 			{
-				strncpy_s(m_sPlayerFilename, argv[argId + 1], _MAX_PATH);
+				strcpy(m_sPlayerFilename, argv[argId + 1]);
 				argId++;
 			}
 			else if ((0 == strcmp(argv[argId], "-wav")) && (argId < argc-1))
 			{
-				strncpy_s(m_sAmigaWavFilename, argv[argId + 1], _MAX_PATH);
+				strcpy(m_sAmigaWavFilename, argv[argId + 1]);
 				argId++;
 			}
 			else if ((0 == strcmp(argv[argId], "-lossless")) && (argId < argc-1))
