@@ -53,7 +53,7 @@ struct ConvertParams
 	#endif
 	char		m_sAmigaWavFilename[_MAX_PATH];
 
-	void		SetNameWithExtension(const char* src, char* dst, const char* sExt, const char* sNamePostfix);
+	void SetNameWithExtension(char* dst, const char* src, const char* sPostfixAndExt);
 
 	bool		m_generateInsane;
 	bool		m_keepModSoundBankLayout;
@@ -63,7 +63,6 @@ struct ConvertParams
 	bool		m_loopPreview;
 	bool		m_lspMicro;
 	bool		m_fixed50hz;
-	bool		m_packEstimate;
 	bool		m_seqGetPosSupport;
 	bool		m_seqSetPosSupport;
 	bool		m_shrink;

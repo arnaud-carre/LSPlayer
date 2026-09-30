@@ -19,11 +19,6 @@
 #include "external/micromod/micromod.h"
 #include "WavWriter.h"
 #include "adpcm.h"
-#ifdef MACOS_LINUX
-#include <string>
-#include <filesystem>
-#include "WindowsCompat.h"
-#endif
 
 static const	int kWordStreamId = 0;
 static const	int kByteStreamId = 1;
@@ -35,27 +30,25 @@ extern long tick_len;
 int	ShrinklerCompressEstimate(u8* data, int size);
 
 
-void	ConvertParams::SetNameWithExtension(const char* src, char* dst, const char* sExt, const char* sNamePostfix)
+void	ConvertParams::SetNameWithExtension(char* dst, const char* src, const char* sPostfixAndExt)
 {
-#ifndef MACOS_LINUX
-	char sDrive[_MAX_DRIVE];
-	char sDir[_MAX_DIR];
-	char sName[_MAX_FNAME];
-	_splitpath_s(src, sDrive, _MAX_DRIVE, sDir, _MAX_DIR, sName, _MAX_FNAME, NULL, 0);
-	if (sNamePostfix)
-		strcat_s(sName, sNamePostfix);
-	_makepath_s(dst, _MAX_PATH, sDrive, sDir, sName, sExt);
-#else
-    std::string srcStdStr { src };
-    std::filesystem::path srcPath { srcStdStr };
-    auto path = srcPath.parent_path().string();
-    if(!path.empty()) path += std::filesystem::path::preferred_separator;
-    auto stem = srcPath.stem();
-    auto newName = path + stem.string() + (sNamePostfix != NULL ? sNamePostfix : "") + sExt;
-    strcpy(dst, newName.c_str());
-#endif
-}
+	size_t length = strlen(src);
+	for (size_t i = length; i > 0; --i)
+	{
+		char c = src[i - 1];
 
+		if (c == '/' || c == '\\')
+			break;
+
+		if (c == '.')
+		{
+			length = i - 1;
+			break;
+		}
+	}
+	memmove(dst, src, length);
+	strcpy(dst + length, sPostfixAndExt);
+}
 
 LSPEncoder::LSPEncoder()
 {
@@ -1111,8 +1104,8 @@ bool	LSPEncoder::ExportToLSP()
 
 		const int lspScoreSize = ComputeLSPMusicSize(streamsSize);
 
-		FILE* hc;
-		if (fopen_s(&hc, params.m_sPlayerFilename, "w"))
+		FILE* hc = fopen(params.m_sPlayerFilename, "w");
+		if ( nullptr == hc )
 			return false;
 		printf("Writing LSP insane player source code (%s)\n", params.m_sPlayerFilename);
 
@@ -1166,19 +1159,6 @@ bool	LSPEncoder::ExportToLSP()
 		decoder.LoadAndRender(m_convertParams.m_sScoreFilename, m_convertParams.m_sBankFilename, m_convertParams.m_sAmigaWavFilename, m_convertParams.m_verbose, m_convertParams.m_loopPreview, m_convertParams.m_mono);
 	}
 
-	if (m_convertParams.m_packEstimate)
-	{
-		BinaryParser fs;
-		if (fs.LoadFromFile(m_convertParams.m_sScoreFilename))
-		{
-			int size = fs.GetLen();
-			u8* data = (u8*)fs.GetBuffer();
-			printf("Packing estimation for \"%s\"\n", m_convertParams.m_sScoreFilename);
-			int packedSize = ShrinklerCompressEstimate(data, size);
-			printf("Packing from %d to %d bytes\n", size, packedSize);
-		}
-	}
-
 	return ret;
 }
 
@@ -1205,9 +1185,8 @@ uint32_t LSPEncoder::GetBankDepackInPlaceOffset(uint32_t* total) const
 bool	LSPEncoder::ExportBank(const char* sfilename)
 {
 	bool ret = false;
-	FILE* h;
-
-	if (0 == fopen_s(&h, sfilename, "wb"))
+	FILE* h = fopen(sfilename, "wb");
+	if (h)
 	{
 		printf("Writing LSBANK file \"%s\"...\n", sfilename);
 		w32(h, m_uniqueId);
@@ -1269,8 +1248,8 @@ bool	LSPEncoder::ExportBank(const char* sfilename)
 bool	LSPEncoder::ExportScore(const ConvertParams& params, MemoryStream* streams, int streamCount, bool microMode)
 {
 	bool ret = false;
-	FILE* h;
-	if (0 == fopen_s(&h, params.m_sScoreFilename, "wb"))
+	FILE* h = fopen(params.m_sScoreFilename, "wb");
+	if (h)
 	{
 		printf("Writing LSMUSIC file \"%s\"...\n", params.m_sScoreFilename);
 

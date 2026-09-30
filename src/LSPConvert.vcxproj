@@ -155,7 +155,6 @@
     <ClCompile Include="LSPDecoder.cpp" />
     <ClCompile Include="LSPEncoder.cpp" />
     <ClCompile Include="MemoryStream.cpp" />
-    <ClCompile Include="PackingEstimate.cpp" />
     <ClCompile Include="Paula.cpp" />
     <ClCompile Include="ValueEncoder.cpp" />
     <ClCompile Include="WavWriter.cpp" />

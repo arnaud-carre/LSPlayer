@@ -42,9 +42,6 @@
     <ClCompile Include="MemoryStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PackingEstimate.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Paula.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
